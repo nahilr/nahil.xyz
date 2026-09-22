@@ -1,4 +1,4 @@
 [submodule "vault"]
 	path = src/content/vault
-	url = git@github.com:nahilrasheed/vault.git
+	url = git@github.com:nahilr/vault.git
 	branch = main
