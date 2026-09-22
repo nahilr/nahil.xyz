@@ -1,7 +1,7 @@
 /* [Animation] */
 @keyframes fade-in-up {
   0% {
-    transform: translateY(2rem);
+    transform: translateY(0.5rem);
     opacity: 0;
   }
   100% {
@@ -36,26 +36,23 @@
 
 .animate {
   opacity: 0;
-  animation: 300ms fade-in-up;
+  animation: 300ms ease-out fade-in-up;
   animation-fill-mode: forwards;
 }
 @media (prefers-reduced-motion) {
   .animate {
     opacity: 0;
-    animation: 100ms fade-in-up;
+    animation: 100ms ease-out fade-in-up;
     animation-fill-mode: forwards;
   }
 }
 #content-header {
+  animation-delay: 25ms;
+}
+#content,
+#sidebar {
   animation-delay: 50ms;
 }
-#content {
-  animation-delay: 100ms;
-}
-#sidebar {
-  animation-delay: 150ms;
-}
-
 /* [Katex] */
 span.katex-display {
   overflow-y: scroll;
@@ -308,4 +305,35 @@ span.katex-display {
     background-color: var(--scrollbar-thumb);
     border-radius: 999px;
   }
+}
+
+/* Sidebar scrollbars stay unobtrusive until the sidebar is being used. */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.sidebar-scrollbar:hover,
+.sidebar-scrollbar:focus-within {
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+}
+
+.sidebar-scrollbar:hover::-webkit-scrollbar,
+.sidebar-scrollbar:focus-within::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.sidebar-scrollbar:hover::-webkit-scrollbar-thumb,
+.sidebar-scrollbar:focus-within::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
 }
