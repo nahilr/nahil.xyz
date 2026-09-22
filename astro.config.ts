@@ -1,7 +1,6 @@
 import { rehypeHeadingIds, unified } from '@astrojs/markdown-remark'
 import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
-import remarkWikiLink from '@flowershow/remark-wiki-link'
 import { defineConfig, fontProviders } from 'astro/config'
 import rehypeCallouts from 'rehype-callouts'
 import rehypeKatex from 'rehype-katex'
@@ -10,6 +9,7 @@ import remarkMath from 'remark-math'
 import UnoCSS from 'unocss/astro'
 
 // Local integrations
+import remarkWikiLink from './src/plugins/remark-wiki-link.js'
 import rehypeAutolinkHeadings from './src/plugins/rehype-auto-link-headings.ts'
 import rehypeExternalLinks from './src/plugins/rehype-external-links.ts'
 import rehypeTable from './src/plugins/rehype-table.ts'
@@ -89,7 +89,7 @@ export default defineConfig({
             format: 'shortestPossible',
             files: vaultFiles,
             permalinks,
-            wikiLinkClassName: 'internal',
+            className: 'internal',
             newClassName: 'new'
           }
         ],

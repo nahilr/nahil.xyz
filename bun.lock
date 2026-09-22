@@ -9,7 +9,6 @@
         "@astrojs/mdx": "8.0.1",
         "@astrojs/rss": "4.0.19",
         "@astrojs/sitemap": "3.7.4",
-        "@flowershow/remark-wiki-link": "^3.4.0",
         "@pagefind/default-ui": "^1.5.2",
         "@unocss/astro": "^66.10.5",
         "astro": "7.3.3",
@@ -18,6 +17,8 @@
         "hast-util-select": "^6.0.4",
         "katex": "^0.18.7",
         "mdast-util-to-string": "^4.0.0",
+        "micromark-util-character": "^2.1.1",
+        "micromark-util-symbol": "^2.0.1",
         "node-html-parser": "^9.0.4",
         "reading-time": "^1.5.0",
         "rehype": "^13.0.2",
@@ -242,8 +243,6 @@
     "@eslint/object-schema": ["@eslint/object-schema@3.0.5", "", {}, "sha512-vqTaUEgxzm+YDSdElad6PiRoX4t8VGDjCtt05zn4nU810UIx/uNEV7/lZJ6KwFThKZOzOxzXy48da+No7HZaMw=="],
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.7.3", "", { "dependencies": { "@eslint/core": "^1.2.1", "levn": "^0.4.1" } }, "sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q=="],
-
-    "@flowershow/remark-wiki-link": ["@flowershow/remark-wiki-link@3.4.0", "", { "dependencies": { "github-slugger": "^2.0.0", "mdast-util-to-markdown": "^2.1.2", "micromark-util-character": "^2.0.0", "micromark-util-symbol": "^2.0.1" } }, "sha512-YeeIwZ630CgBRiVWwM5C8ikAyuT0nLjdjhAZxhOOBgUCA34LCQxFwCkEnA0BySDJr6NQiJjJfRvO/TxBs+deAA=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.2", "", { "dependencies": { "@humanfs/types": "^0.15.0" } }, "sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA=="],
 

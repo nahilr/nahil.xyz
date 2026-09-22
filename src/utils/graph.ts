@@ -1,4 +1,4 @@
-import remarkWikiLink from '@flowershow/remark-wiki-link'
+import remarkWikiLink from '@/plugins/remark-wiki-link.js'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 import { visit } from 'unist-util-visit'
@@ -74,7 +74,7 @@ export async function getVaultGraphData(): Promise<GraphData> {
       format: 'shortestPossible',
       files: getVaultIndex().files,
       permalinks: getVaultIndex().permalinks,
-      wikiLinkClassName: 'internal',
+      className: 'internal',
       newClassName: 'new'
     })
 
