@@ -56,7 +56,7 @@ const displayType = Array.isArray(rawType) ? rawType[0] || 'note' : rawType || '
     {
       !isNote && detailed && data?.heroImage && (
         <Image
-          alt={data.heroImage.alt || title}
+          alt={data.heroImage.alt || title || ''}
           class='cover-image absolute end-0 top-0 z-0 h-2/3 w-full rounded-2xl object-cover opacity-50 transition-opacity duration-300 group-hover:opacity-70 md:h-full md:w-3/5'
           loading='eager'
           {...data.heroImage}
@@ -67,11 +67,11 @@ const displayType = Array.isArray(rawType) ? rawType[0] || 'note' : rawType || '
       class={cn('relative flex flex-col gap-1', !detailed && 'sm:flex-row sm:items-center')}
       style='z-index:1'
     >
-      <FormattedDate class='min-w-[95px] text-xs' date={date} />
+      {date && <FormattedDate class='min-w-[95px] text-xs' date={date} />}
 
       {/* title */}
       <div class='flex justify-between flex-grow'>
-        <div class={detailed && 'font-medium'}>
+        <div class={cn(detailed && 'font-medium')}>
           {isDraft && <span class='text-red-500'>(Draft) </span>}
           {title}
         </div>

@@ -11,6 +11,7 @@ type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }> & {
   location?: string
   imagePath?: string
   altText?: string
+  href?: string
   isLCP?: boolean
   class?: string
 }
@@ -52,7 +53,7 @@ if (imagePath) {
         src={image}
         widths={[189, 280, 360]}
         sizes='(max-width: 768px) 189px, (max-width: 1200px) 240px, 240px'
-        alt={altText ?? heading}
+        alt={altText ?? heading ?? ''}
         class='absolute end-2 top-2 z-0 h-[78%] w-auto max-w-[240px] object-contain object-center opacity-80 transition-opacity'
         priority={isLCP}
       />
