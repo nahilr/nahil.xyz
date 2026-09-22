@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets'
 
 import PageLayout from '@/layouts/BaseLayout.astro'
-import { ImageCard, ProjectCard } from '@/components/about'
+import { ImageCard } from '@/components/about'
 import PostPreview from '@/components/pages/PostPreview.astro'
 import { Icon, Label, Section } from '@/components/user'
 import { getEnrichedVaultCollection } from '@/utils/vault'
@@ -165,24 +165,7 @@ if (!images[imagePath])
         )
       }
 
-      <Section title='Projects'>
-        <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-          <ProjectCard
-            href='https://revx-7r6.pages.dev/'
-            heading='RevX'
-            subheading='Collaborative Project Sharing Platform'
-            imagePath='/src/assets/projects/revx.png'
-          />
-          <ProjectCard
-            href='/projects'
-            heading='More projects'
-            subheading='Check out more projects'
-            imagePath='/src/assets/projects/image.png'
-          />
-        </div>
-      </Section>
-
-      <Section title='Certifications'>
+      <!-- <Section title='Certifications'>
         <div class='flex flex-col gap-3'>
           <ImageCard
             as='a'
@@ -201,7 +184,7 @@ if (!images[imagePath])
             imagePath='/src/assets/about/cisco-eh.png'
           />
         </div>
-      </Section>
+      </Section> -->
 
       <div class='flex justify-center pt-2'>
         <a

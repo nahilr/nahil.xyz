@@ -3,22 +3,14 @@ import PageLayout from '@/layouts/CommonPage.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 
 const headings = [
-  { depth: 2, slug: 'git-activity', text: 'Git Activity' },
   { depth: 2, slug: 'projects', text: 'Personal Projects' },
   { depth: 2, slug: 'works', text: 'Works' },
-  { depth: 2, slug: 'ctf-participations', text: 'CTF Participations' }
+  { depth: 2, slug: 'ctf-participations', text: 'CTF Participations' },
+  { depth: 2, slug: 'git-activity', text: 'Git Activity' }
 ]
 ---
 
 <PageLayout title='Projects' {headings}>
-  <h2 id='git-activity'>Git Activity</h2>
-  <p>
-    <img
-      src='https://raw.githubusercontent.com/nahilr/nahilr/main/profile-3d-contrib/profile-night-green.svg'
-      alt='GitHub contribution profile'
-      loading='lazy'
-    />
-  </p>
 
   <h2 id='projects'>Personal Projects</h2>
   <ProjectSection
@@ -70,6 +62,15 @@ const headings = [
       }
     ]}
   />
+
+  <h2 id='git-activity'>Git Activity</h2>
+  <p>
+    <img
+      src='https://raw.githubusercontent.com/nahilr/nahilr/main/assets/3d-graph/profile-night-green.svg'
+      alt='GitHub contribution profile'
+      loading='lazy'
+    />
+  </p>
 </PageLayout>
 
 <script is:inline>
