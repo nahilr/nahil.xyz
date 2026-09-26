@@ -70,12 +70,12 @@ const displayType = Array.isArray(rawType) ? rawType[0] || 'note' : rawType || '
       {date && <FormattedDate class='min-w-[95px] text-xs' date={date} />}
 
       {/* title */}
-      <div class='flex justify-between flex-grow'>
-        <div class={cn(detailed && 'font-medium')}>
+      <div class='flex min-w-0 justify-between flex-grow'>
+        <div class={cn('min-w-0 break-words', detailed && 'font-medium')}>
           {isDraft && <span class='text-red-500'>(Draft) </span>}
           {title}
         </div>
-        <div class='flex items-center gap-2'>
+        <div class='flex shrink-0 items-center gap-2'>
           {withType && <span class='text-xs text-muted-foreground'>[{displayType}]</span>}
           <Icon
             name='arrow-right-animated'
@@ -95,20 +95,26 @@ const displayType = Array.isArray(rawType) ? rawType[0] || 'note' : rawType || '
             >
               {data.description}
             </p>
-            <div class='py-2 flex items-center gap-2 text-sm italic leading-4 text-muted-foreground'>
+            {/* flex-wrap + min-w-0 keep the meta row shrinkable so long tag
+             * lists wrap instead of forcing horizontal page overflow. */}
+            <div
+              class='flex flex-wrap items-center gap-x-2 gap-y-1 py-2 text-sm italic leading-4 text-muted-foreground'
+            >
               {/* reading time */}
               <span class='flex items-center gap-1'>
-                <Icon name='time' class='size-4' />
+                <Icon name='time' class='size-4 shrink-0' />
                 {remarkPluginFrontmatter?.minutesRead}
               </span>
               {/* tags */}
               {data.tags.length > 0 && (
-                <span class='flex items-center gap-1 not-italic'>
-                  <Icon name='hashtag' class='size-4' />
+                <span class='flex min-w-0 flex-wrap items-center gap-1 not-italic'>
+                  <Icon name='hashtag' class='size-4 shrink-0' />
                   {data.tags.map((tag: string, i: number) => (
                     <Fragment>
-                      <span>{tag}</span>
-                      {i < data.tags.length - 1 && <span class='mx-0.5'>/</span>}
+                      <span class='inline-flex items-center whitespace-nowrap'>
+                        <span>{tag}</span>
+                        {i < data.tags.length - 1 && <span class='mx-0.5'>/</span>}
+                      </span>
                     </Fragment>
                   ))}
                 </span>
@@ -116,7 +122,7 @@ const displayType = Array.isArray(rawType) ? rawType[0] || 'note' : rawType || '
               {/* language */}
               {data.language && (
                 <span class='flex items-center gap-1'>
-                  <Icon name='earth' class='size-4' />
+                  <Icon name='earth' class='size-4 shrink-0' />
                   {data.language}
                 </span>
               )}

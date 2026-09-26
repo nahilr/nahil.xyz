@@ -68,16 +68,18 @@ const typographyConfig = {
       'word-break': 'break-word',
       'overflow-wrap': 'anywhere'
     },
+    'p,li,blockquote,td,th,h1,h2,h3,h4,h5,h6': {
+      'overflow-wrap': 'anywhere'
+    },
     // Inline code
     ':not(pre) > code': {
       'white-space': 'pre-wrap',
-      'word-break': 'break-all'
+      'word-break': 'normal',
+      'overflow-wrap': 'anywhere'
     },
     ...(typographyCustom.inlineCodeBlockStyle === 'modern' && {
       ':not(pre) > code': {
         padding: '0.3em 0.5em',
-        border: `1px solid ${border}`,
-        'border-radius': radius,
         'background-color': bgMuted
       },
       ':not(pre)>code::before': {

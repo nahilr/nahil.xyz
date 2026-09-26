@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets'
 
 import PageLayout from '@/layouts/BaseLayout.astro'
-import { ImageCard } from '@/components/about'
+// import { ImageCard } from '@/components/about'
 import PostPreview from '@/components/pages/PostPreview.astro'
 import { Icon, Label, Section } from '@/components/user'
 import { getEnrichedVaultCollection } from '@/utils/vault'
@@ -114,7 +114,7 @@ if (!images[imagePath])
           latest software experiments.
           <a
             href='/about'
-            class='group float-right ml-2 inline-flex items-center gap-x-1 text-sm text-muted-foreground transition-colors hover:text-foreground'
+            class='group float-right ml-2 inline-flex align-text-bottom items-center gap-x-1 text-muted-foreground transition-colors hover:text-foreground'
           >
             More about me
             <Icon
