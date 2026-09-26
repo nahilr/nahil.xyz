@@ -1,38 +1,37 @@
 ---
 import { Icon } from '@/components/user'
+import VaultTree from '@/components/vault/VaultTree.astro'
 import { cn } from '@/utils/class-merge'
 import { getVaultTree, normalizeVaultSlug } from '@/utils/vault'
 import type { VaultNode } from '@/utils/vault'
 
 interface Props {
-  folder: string
+  folder?: string
   class?: string
+  id?: string
 }
 
-const { folder, class: className } = Astro.props
+const { folder, class: className, id } = Astro.props
 
 const tree = await getVaultTree()
-const normalizedFolderSlug = normalizeVaultSlug(folder)
+const normalizedFolderSlug = folder ? normalizeVaultSlug(folder) : undefined
 
 function findNode(nodes: VaultNode[], slug: string): VaultNode | undefined {
   for (const node of nodes) {
     if (node.slug === slug) return node
-    if (node.children.length > 0) {
-      const found = findNode(node.children, slug)
-      if (found) return found
-    }
+    const found = findNode(node.children, slug)
+    if (found) return found
   }
   return undefined
 }
 
-const node = findNode(tree, normalizedFolderSlug)
-const canLink = (n: VaultNode) => !!n.slug && n.showLink !== false
-const children = node?.children ?? []
-const hasFolderIcon = (n: VaultNode) => n.children.length > 0
+const node = normalizedFolderSlug ? findNode(tree, normalizedFolderSlug) : undefined
+const canLink = (item: VaultNode) => !!item.slug && item.showLink !== false
+const children = folder ? (node?.children ?? []) : tree
 ---
 
 {
-  !node && (
+  folder && !node && (
     <p class='not-prose text-muted-foreground italic'>
       Folder &quot;{folder}&quot; not found in vault.
     </p>
@@ -40,17 +39,23 @@ const hasFolderIcon = (n: VaultNode) => n.children.length > 0
 }
 
 {
-  node && children.length === 0 && (
+  (folder ? node && children.length === 0 : children.length === 0) && (
     <p class='not-prose text-muted-foreground italic'>No notes in this folder.</p>
   )
 }
 
 {
-  node && children.length > 0 && (
-    <div class={cn('not-prose grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start', className)}>
+  children.length > 0 && (
+    <div
+      id={id}
+      class={cn(
+        'not-prose vault-card-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start',
+        className
+      )}
+    >
       {children.map((child) =>
-        hasFolderIcon(child) ? (
-          <details class='vault-folder group relative border rounded-xl bg-card/60 text-card-foreground shadow-sm transition-all duration-200 hover:bg-card/80 hover:z-30 open:z-50 open:bg-card open:shadow-2xl'>
+        child.children.length > 0 ? (
+          <details class='vault-card-folder group relative border rounded-xl bg-card/60 text-card-foreground shadow-sm transition-colors duration-200 hover:bg-card/80 hover:z-30 open:z-50 open:bg-card open:shadow-2xl'>
             <summary class='flex items-center gap-2 p-4 cursor-pointer list-none transition-colors select-none'>
               <Icon
                 name='chevron-right'
@@ -67,31 +72,22 @@ const hasFolderIcon = (n: VaultNode) => n.children.length > 0
                   )}
                 </a>
               ) : (
-                <span class='font-semibold text-lg flex-1 break-words'>{child.title}</span>
+                <span class='font-semibold text-lg flex-1 break-words'>
+                  {child.title}
+                  {child.entry?.data.publish === false && (
+                    <span class='text-red-500 text-sm ml-1'>(Unpublished)</span>
+                  )}
+                </span>
               )}
             </summary>
-            <div class='border-t border-border px-4 pb-4 pt-2'>
-              <ul class='space-y-0.5'>
-                {child.children.map((grandchild) => (
-                  <li>
-                    {grandchild.slug && grandchild.showLink !== false ? (
-                      <a
-                        href={`/vault/${grandchild.slug}`}
-                        class='block py-0.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
-                      >
-                        {grandchild.title}
-                        {grandchild.entry?.data.publish === false && (
-                          <span class='text-red-500 text-xs ml-1'>(Unpublished)</span>
-                        )}
-                      </a>
-                    ) : (
-                      <span class='block py-0.5 text-sm text-muted-foreground'>
-                        {grandchild.title}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+            <div class='vault-card-content absolute top-[calc(100%-1px)] left-[-1px] right-[-1px] border-x border-b border-border bg-card rounded-b-xl shadow-xl overflow-hidden'>
+              <div class='px-4 pb-4 pt-2'>
+                <ul class='pt-2 space-y-0.5'>
+                  {child.children.map((grandchild) => (
+                    <VaultTree node={grandchild} collapsed />
+                  ))}
+                </ul>
+              </div>
             </div>
           </details>
         ) : canLink(child) ? (
@@ -108,10 +104,147 @@ const hasFolderIcon = (n: VaultNode) => n.children.length > 0
           </a>
         ) : (
           <div class='block p-4 relative border rounded-xl bg-card/60 text-card-foreground shadow-sm'>
-            <span class='font-semibold text-lg pl-6 block break-words'>{child.title}</span>
+            <span class='font-semibold text-lg pl-6 block break-words'>
+              {child.title}
+              {child.entry?.data.publish === false && (
+                <span class='text-red-500 text-sm ml-1'>(Unpublished)</span>
+              )}
+            </span>
           </div>
         )
       )}
+      <div class='vault-card-spacer col-span-full' aria-hidden='true'></div>
     </div>
   )
 }
+
+<style>
+  .vault-card-folder {
+    contain: layout style;
+  }
+
+  .vault-card-spacer {
+    transition: height 260ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .vault-card-content {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  .vault-card-folder[open] .vault-card-content {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  function initializeVaultCardGrids() {
+    document.querySelectorAll<HTMLElement>('.vault-card-grid').forEach((grid) => {
+      if (grid.dataset.initialized === 'true') return
+      grid.dataset.initialized = 'true'
+
+      const spacer = grid.querySelector<HTMLElement>('.vault-card-spacer')
+      const folders = Array.from(grid.querySelectorAll<HTMLDetailsElement>('.vault-card-folder'))
+
+      setTimeout(() => grid.classList.add('initialized'), 100)
+
+      const updateSpacer = (folder?: HTMLDetailsElement) => {
+        const content = folder?.querySelector<HTMLElement>('.vault-card-content')
+        if (spacer) spacer.style.height = content ? `${content.scrollHeight}px` : '0px'
+      }
+
+      const closeFolder = (folder: HTMLDetailsElement) => {
+        const content = folder.querySelector<HTMLElement>('.vault-card-content')
+        if (!content) {
+          folder.open = false
+          return
+        }
+
+        const height = content.getBoundingClientRect().height
+        content.getAnimations().forEach((animation) => animation.cancel())
+        folder.getAnimations().forEach((animation) => animation.cancel())
+        updateSpacer()
+        const animation = content.animate(
+          [
+            { height: `${height}px`, opacity: 1, transform: 'translateY(0)' },
+            { height: '0px', opacity: 0, transform: 'translateY(-4px)' }
+          ],
+          { duration: 260, easing: 'cubic-bezier(0.2, 0, 0, 1)' }
+        )
+        folder.animate(
+          [{ borderRadius: getComputedStyle(folder).borderRadius }, { borderRadius: '0.75rem' }],
+          { duration: 260, easing: 'cubic-bezier(0.2, 0, 0, 1)' }
+        )
+        animation.onfinish = () => {
+          folder.open = false
+          content.style.removeProperty('height')
+          folder.style.removeProperty('border-radius')
+        }
+      }
+
+      const openFolder = (folder: HTMLDetailsElement) => {
+        const content = folder.querySelector<HTMLElement>('.vault-card-content')
+        if (!content) {
+          folder.open = true
+          return
+        }
+
+        const runningHeight = content.getAnimations().length
+          ? content.getBoundingClientRect().height
+          : 0
+        const startingRadius = getComputedStyle(folder).borderRadius
+        content.getAnimations().forEach((animation) => animation.cancel())
+        folder.getAnimations().forEach((animation) => animation.cancel())
+        folder.open = true
+        content.style.height = `${runningHeight}px`
+        const height = content.scrollHeight
+        updateSpacer(folder)
+        const animation = content.animate(
+          [
+            { height: `${runningHeight}px`, opacity: 0, transform: 'translateY(-4px)' },
+            { height: `${height}px`, opacity: 1, transform: 'translateY(0)' }
+          ],
+          { duration: 300, easing: 'cubic-bezier(0.2, 0, 0, 1)' }
+        )
+        const radiusAnimation = folder.animate(
+          [
+            { borderRadius: startingRadius },
+            { borderRadius: '0.75rem 0.75rem 0 0' }
+          ],
+          { duration: 300, easing: 'cubic-bezier(0.2, 0, 0, 1)' }
+        )
+        animation.onfinish = () => {
+          content.style.removeProperty('height')
+        }
+        radiusAnimation.onfinish = () => {
+          folder.style.borderRadius = '0.75rem 0.75rem 0 0'
+        }
+      }
+
+      folders.forEach((folder) => {
+        folder.querySelector('summary')?.addEventListener('click', (event) => {
+          event.preventDefault()
+          if (folder.open) {
+            updateSpacer()
+            closeFolder(folder)
+            return
+          }
+
+          folders.forEach((other) => {
+            if (other !== folder && other.open) closeFolder(other)
+          })
+
+          openFolder(folder)
+        })
+      })
+
+      grid.querySelectorAll('.vault-card-folder a').forEach((link) => {
+        link.addEventListener('click', (event) => event.stopPropagation())
+      })
+    })
+  }
+
+  initializeVaultCardGrids()
+  document.addEventListener('astro:page-load', initializeVaultCardGrids)
+</script>
