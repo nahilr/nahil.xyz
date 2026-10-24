@@ -5,25 +5,138 @@ import ProjectSection from '@/components/projects/ProjectSection.astro'
 const headings = [
   { depth: 2, slug: 'projects', text: 'Personal Projects' },
   { depth: 2, slug: 'works', text: 'Works' },
+  { depth: 2, slug: 'open-source', text: 'Open Source' },
   { depth: 2, slug: 'ctf-participations', text: 'CTF Participations' },
   { depth: 2, slug: 'git-activity', text: 'Git Activity' }
 ]
 ---
 
 <PageLayout title='Projects' {headings}>
-
   <h2 id='projects'>Personal Projects</h2>
   <ProjectSection
     projects={[
       {
-        name: 'Revx',
+        name: 'FancyCam',
+        image: 'fancycam.png',
+        description:
+          'Educational android spyware disguised as a camera app with a Flask C2 server for remote execution, persistent SMS/contact/call harvesting, and covert photo, audio, and screenshot capture.',
+        technologies: [
+          { label: 'Android', logo: 'android' },
+          { label: 'Kotlin', logo: 'kotlin' },
+          { label: 'Python', logo: 'python' },
+          { label: 'Flask', logo: 'flask' }
+        ],
+        links: [
+          // { type: 'doc', href: '/vault/projects/fancycam', label: 'Report' },
+          { type: 'github', href: 'https://github.com/nahilr/fancycam', label: 'Github' }
+        ]
+      },
+      {
+        name: 'RevX',
+        image: 'revx.png',
         description:
           'A peer-driven platform where students can upload projects, review peer work, and explore a collaborative space for innovation and feedback.',
+        technologies: [
+          { label: 'React', logo: 'react' },
+          { label: 'FastAPI', logo: 'fastapi' },
+          { label: 'Supabase', logo: 'supabase' },
+          { label: 'TypeScript', logo: 'typescript' },
+          { label: 'Tailwind CSS', logo: 'tailwindcss' }
+        ],
         links: [
-          { type: 'github', href: 'https://github.com/nahilr/RevX' },
+          { type: 'github', href: 'https://github.com/nahilr/RevX', label: 'Github' },
+          { type: 'site', href: 'https://revx-7r6.pages.dev/', label: 'Live site' }
+        ]
+      }
+    ]}
+  />
+  <ProjectSection
+    columns={2}
+    projects={[
+      {
+        name: 'nahil.xyz',
+        description:
+          'This website itself - my personal portfolio and digital garden for sharing my notes, research, and ideas.',
+        technologies: [
+          { label: 'Astro', logo: 'astro' },
+          { label: 'UnoCSS', logo: 'unocss' },
+          { label: 'Cloudflare', logo: 'cloudflare' }
+        ],
+        links: [{ type: 'github', href: 'https://github.com/nahilr/nahil.xyz', label: 'Github' }]
+      },
+      {
+        name: 'Zero-Trust Cloud Homelab',
+        description: 'Personal zero-trust cloud infrastructure running on Oracle Cloud.',
+        technologies: [
+          { label: 'Linux', logo: 'linux' },
+          { label: 'Docker', logo: 'docker' },
+          { label: 'Traefik', logo: 'traefikproxy' },
+          { label: 'Oracle Cloud', logo: 'oracle' }
+        ],
+        links: [
+          { type: 'github', href: 'https://github.com/nahilrasheed/homelab', label: 'Github' }
+        ]
+      },
+      {
+        name: 'Virtual SOC Lab',
+        description:
+          'Virtual home Security Operations Center (SOC) lab setup for telemetry ingestion, threat detection, and defensive cybersecurity monitoring.',
+        technologies: [
+          { label: 'Linux', logo: 'linux' },
+          { label: 'Windows', logo: 'windows' },
+          { label: 'Wazuh', logo: 'wazuh' },
+          { label: 'Cybersecurity', logo: 'cybersecurity' }
+        ],
+        links: [{ type: 'doc', href: '/vault/projects/soc-lab', label: 'Project Writeup' }]
+      },
+      {
+        name: 'ESP32 Smart Parking Monitor',
+        description:
+          'IoT ultrasonic parking spot detection system featuring localized OLED feedback, Blynk cloud telemetry, and distributed dual-node MQTT communication.',
+        technologies: [
+          { label: 'ESP32', logo: 'espressif' },
+          { label: 'MQTT', logo: 'mqtt' },
+          { label: 'Arduino', logo: 'arduino' },
+          { label: 'IoT', logo: 'iot' }
+        ],
+        links: [
+          // { type: 'doc', href: '/vault/projects/esp32-smart-parking-monitor', label: 'Report' },
           {
-            type: 'site',
-            href: 'https://revx-7r6.pages.dev/'
+            type: 'github',
+            href: 'https://github.com/nahilrasheed/esp32-smart-parking-monitor',
+            label: 'Github'
+          }
+        ]
+      },
+      {
+        name: 'GenAI Fingerprint (GenAIFP)',
+        description:
+          'Forensic generative AI image attribution and deepfake detection engine combining DINOv2 visual embeddings, spatial-frequency metrics, and calibrated XGBoost classifiers.',
+        technologies: [
+          { label: 'Python', logo: 'python' },
+          { label: 'PyTorch', logo: 'pytorch' },
+          { label: 'FastAPI', logo: 'fastapi' },
+          { label: 'OpenCV', logo: 'opencv' },
+          { label: 'XGBoost', logo: 'xgboost' }
+        ],
+        links: [
+          // { type: 'doc', href: '/vault/projects/genai-fingerprint', label: 'Report' },
+          { type: 'github', href: 'https://github.com/nahilr/genaifp', label: 'Github' }
+        ]
+      },
+      {
+        name: 'TryHackMe Profile Badge Workflow',
+        description:
+          'Automated GitHub Action and Python engine that fetches live TryHackMe cybersecurity stats and renders dynamic profile badges committed to user READMEs.',
+        technologies: [
+          { label: 'GitHub Actions', logo: 'githubactions' },
+          { label: 'Python', logo: 'python' }
+        ],
+        links: [
+          {
+            type: 'github',
+            href: 'https://github.com/nahilr/tryhackme-profile-badge-workflow',
+            label: 'Github'
           }
         ]
       }
@@ -35,12 +148,62 @@ const headings = [
     projects={[
       {
         name: 'SGOU',
-        description: 'State Gazetted Officers Union (SGOU) Website.',
+        image: 'sgou.png',
+        description: 'Official website of the State Gazetted Officers Union (SGOU) Kerala.',
+        technologies: [
+          { label: 'Astro', logo: 'astro' },
+          { label: 'Tailwind CSS', logo: 'tailwindcss' },
+          { label: 'Netlify', logo: 'netlify' }
+        ],
+        links: [{ type: 'site', href: 'https://sgou.org/', label: 'Website' }]
+      }
+    ]}
+  />
+
+  <h2 id='open-source'>Open Source</h2>
+  <ProjectSection
+    columns={2}
+    projects={[
+      {
+        name: 'Noctalia',
+        description:
+          'All-in-one Wayland desktop shell. Contributed to Network, Bluetooth, and clipboard improvements.',
+        technologies: [
+          { label: 'C++', logo: 'cplusplus' },
+          { label: 'Wayland' },
+          { label: 'OpenGL', logo: 'opengl' }
+        ],
         links: [
+          { type: 'github', href: 'https://github.com/noctalia-dev/noctalia', label: 'Github' },
+          { type: 'site', href: 'https://noctalia.dev/', label: 'Website' },
           {
-            type: 'site',
-            href: 'https://sgou.org/'
+            type: 'github',
+            href: 'https://github.com/noctalia-dev/noctalia/pull/3566',
+            label: 'PR #3566'
+          },
+          {
+            type: 'github',
+            href: 'https://github.com/noctalia-dev/noctalia/pull/1184',
+            label: 'PR #1184'
+          },
+          {
+            type: 'github',
+            href: 'https://github.com/noctalia-dev/noctalia/pull/1089',
+            label: 'PR #1089'
           }
+        ]
+      },
+      {
+        name: 'rep+',
+        description: 'Burp-style HTTP Repeater extension for Chrome DevTools.',
+        technologies: [
+          { label: 'JavaScript', logo: 'javascript' },
+          { label: 'Chrome Extension', logo: 'googlechrome' },
+          { label: 'DevTools' }
+        ],
+        links: [
+          { type: 'github', href: 'https://github.com/repplus/rep-chrome', label: 'Github' },
+          { type: 'github', href: 'https://github.com/repplus/rep-chrome/pull/41', label: 'PR #41' }
         ]
       }
     ]}
@@ -53,12 +216,7 @@ const headings = [
         name: 'ApoorvCTF 26',
         description:
           'Annual CTF organized by the Cybersecurity club at IIIT Kottayam. Placed 47th among 2500+ teams.',
-        links: [
-          {
-            type: 'doc',
-            href: '/vault/writeups/apoorvctf2026'
-          }
-        ]
+        links: [{ type: 'doc', href: '/vault/writeups/apoorvctf2026', label: 'Writeup' }]
       }
     ]}
   />
@@ -72,4 +230,3 @@ const headings = [
     />
   </p>
 </PageLayout>
-

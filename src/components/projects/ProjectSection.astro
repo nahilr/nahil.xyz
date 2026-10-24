@@ -6,98 +6,149 @@ import type { iconsType } from '@/types/config'
 import { Icon } from '@/components/user'
 import { cn } from '@/utils'
 
-interface Project {
-  image?: string
+export interface Technology {
+  label: string
+  color?: string
+  logo?: string
+  logoColor?: string
+}
+
+export interface ProjectLink {
+  type: string
+  href: string
+  label?: string
+}
+
+export interface Project {
   name: string
+  image?: string
   description: string
-  links: {
-    type: string
-    href: string
-  }[]
+  technologies?: Technology[]
+  links?: ProjectLink[]
 }
 
 interface Props {
   class?: string
   projects: Project[]
+  columns?: 1 | 2
 }
-const { class: className, projects, ...props } = Astro.props
+
+const { class: className, projects, columns = 1, ...props } = Astro.props
+
 const images = import.meta.glob<{ default: ImageMetadata }>(
-  '/src/assets/projects/*.{jpeg,jpg,png,gif,avif.webp,webp}'
+  '/src/assets/projects/*.{jpeg,jpg,png,gif,avif,webp}'
 )
+
 const projectIconSet: Record<string, iconsType> = {
   github: 'github-circle',
   site: 'earth',
+  link: 'earth',
   doc: 'document',
   release: 'package'
 }
+
+function getBadgeUrl(tech: Technology): string {
+  const formatted = encodeURIComponent(tech.label.replace(/-/g, '--').replace(/_/g, '__'))
+  const color = tech.color || '24292e'
+  let url = `https://img.shields.io/badge/${formatted}-${color}?style=flat-square`
+  if (tech.logo) {
+    const logoColor = tech.logoColor || 'white'
+    url += `&logo=${encodeURIComponent(tech.logo)}&logoColor=${encodeURIComponent(logoColor)}`
+  }
+  return url
+}
 ---
 
-<div class={className} {...props}>
-  <div class='grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 sm:gap-y-4'>
-    {
-      projects.map((project) => {
-        var imagePath = null
-        if (project.image) {
-          imagePath = '/src/assets/projects/' + project.image
-          if (!images[imagePath])
-            throw new Error(
-              `"${imagePath}" does not exist in glob: "src/assets/projects/*.{jpeg,jpg,png,gif,avif,webp}"`
-            )
-        }
-
-        return (
-          <div class='relative overflow-hidden rounded-xl border'>
-            {imagePath && (
-              <Image
-                class='absolute end-0 z-0 m-0 h-full w-1/2 object-cover opacity-40'
-                src={images[imagePath]()}
-                alt={project.name}
-                loading='lazy'
-                style={{
-                  maskImage:
-                    'linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
-                  msMaskImage:
-                    '-ms-linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
-                  WebkitMaskImage:
-                    '-webkit-linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)'
-                }}
-              />
-            )}
-            <div
-              class={cn(
-                'relative z-10 flex flex-col gap-y-1 px-2 py-1.5 sm:px-3 sm:py-2',
-                imagePath && 'me-20'
-              )}
-            >
-              <a
-                class='line-clamp-1 font-medium text-foreground no-underline transition-colors'
-                href={project.links[0].href}
-                target='_blank'
-              >
-                {project.name}
-              </a>
-              <div class='line-clamp-2 leading-snug text-muted-foreground sm:h-12'>
-                {project.description}
-              </div>
-              <div class='flex flex-row items-center gap-x-2 sm:gap-x-3'>
-                {project.links.map((link) => {
-                  const icon = projectIconSet[link.type]
-                  return (
-                    <a
-                      href={link.href}
-                      class='rounded-full bg-muted p-1 text-muted-foreground transition-colors sm:p-1.5'
-                      aria-label={link.type}
-                      target='_blank'
-                    >
-                      <Icon class='size-5' name={icon} />
-                    </a>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+<div
+  class={cn(
+    'not-prose grid grid-cols-1 gap-y-3 sm:gap-y-4 mb-3 sm:mb-4',
+    columns === 2 && 'sm:grid-cols-2 sm:gap-x-4',
+    className
+  )}
+  {...props}
+>
+  {projects.map((project) => {
+    let imagePath: string | null = null
+    if (project.image) {
+      imagePath = '/src/assets/projects/' + project.image
+      if (!images[imagePath]) {
+        throw new Error(
+          `"${imagePath}" does not exist in glob: "src/assets/projects/*.{jpeg,jpg,png,gif,avif,webp}"`
         )
-      })
+      }
     }
-  </div>
+
+    return (
+      <div class='group relative flex flex-col overflow-hidden rounded-xl border bg-background'>
+        {imagePath && (
+          <Image
+            class='absolute end-0 z-0 m-0 h-full w-1/2 object-cover opacity-40 transition-transform duration-500 ease-out group-hover:scale-105'
+            src={images[imagePath]()}
+            alt={project.name}
+            loading='lazy'
+            style={{
+              maskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
+              msMaskImage:
+                '-ms-linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
+              WebkitMaskImage:
+                '-webkit-linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)'
+            }}
+          />
+        )}
+
+        <div
+          class={cn(
+            'relative z-10 flex flex-col gap-y-2.5 p-3 sm:p-3.5',
+            imagePath && 'me-20 sm:me-0 sm:max-w-[65%]'
+          )}
+        >
+          <div class='flex flex-col gap-y-1'>
+            <div class='font-medium text-foreground'>{project.name}</div>
+            <div class='leading-snug text-muted-foreground'>{project.description}</div>
+
+            {project.technologies && project.technologies.length > 0 && (
+              <div class='flex flex-wrap items-center gap-1.5 pt-0.5'>
+                {project.technologies.map((tech) => (
+                  <img
+                    src={getBadgeUrl(tech)}
+                    alt={tech.label}
+                    loading='lazy'
+                    class='m-0 h-5 w-auto select-none'
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {project.links && project.links.length > 0 && (
+            <div class='flex flex-wrap items-center gap-2 pt-1'>
+              {project.links.map((link) => {
+                const icon = projectIconSet[link.type] ?? 'earth'
+                const isExternal =
+                  link.href.startsWith('http://') || link.href.startsWith('https://')
+                return (
+                  <a
+                    href={link.href}
+                    class={cn(
+                      'rounded-full bg-muted text-muted-foreground transition-colors hover:text-foreground no-underline',
+                      link.label
+                        ? 'inline-flex items-center gap-x-1.5 px-3 py-1 text-sm'
+                        : 'p-1 sm:p-1.5'
+                    )}
+                    aria-label={link.label || link.type}
+                    target={isExternal ? '_blank' : undefined}
+                    rel={isExternal ? 'noopener noreferrer' : undefined}
+                  >
+                    <Icon class='size-5' name={icon} />
+                    {link.label && <span>{link.label}</span>}
+                    {isExternal && <span class='text-xs'>↗</span>}
+                  </a>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  })}
 </div>

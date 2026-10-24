@@ -31,8 +31,7 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
       id='sidebar-shade'
       class='fixed top-0 start-0 w-full h-full'
       style='display:none;background-color:#00000091;z-index:31'
-    >
-    </div>
+    ></div>
 
     <article class='min-w-0 grow' data-pagefind-body>
       {/* Content header */}
@@ -44,7 +43,7 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
       <div
         id='content'
         class={cn(
-          'max-w-none animate mt-8 md:min-w-[45ch] overflow-x-hidden',
+          'max-w-none animate md:min-w-[45ch] overflow-x-hidden [&>h2:first-child]:mt-4',
           integ.typography.class
         )}
       >
