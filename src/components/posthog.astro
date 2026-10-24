@@ -11,7 +11,7 @@
   }}
 >
   !(function (t, e) {
-    var o, n, p, r
+    var o, n, p
     e.__SV ||
       ((window.posthog = e),
       (e._i = []),
@@ -23,11 +23,29 @@
               t.push([e].concat(Array.prototype.slice.call(arguments, 0)))
             }))
         }
-        ;(((p = t.createElement('script')).type = 'text/javascript'),
-          (p.async = !0),
-          (p.src =
-            s.api_host.replace('.i.posthog.com', '-assets.i.posthog.com') + '/static/array.js'),
-          (r = t.getElementsByTagName('script')[0]).parentNode.insertBefore(p, r))
+        function injectScript() {
+          if (window._posthogInjected) return
+          window._posthogInjected = true
+          p = t.createElement('script')
+          p.type = 'text/javascript'
+          p.async = true
+          p.src =
+            s.api_host.replace('.i.posthog.com', '-assets.i.posthog.com') + '/static/array.js'
+          var target = t.getElementsByTagName('script')[0] || t.head
+          target.parentNode ? target.parentNode.insertBefore(p, target) : target.appendChild(p)
+        }
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(function () {
+            setTimeout(injectScript, 1000)
+          })
+        } else {
+          window.addEventListener('load', function () {
+            setTimeout(injectScript, 1500)
+          })
+        }
+        ;['scroll', 'keydown', 'pointerdown', 'touchstart'].forEach(function (evt) {
+          window.addEventListener(evt, injectScript, { once: true, passive: true })
+        })
         var u = e
         for (
           void 0 !== a ? (u = e[a] = []) : (a = 'posthog'),
