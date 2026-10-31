@@ -13,6 +13,8 @@ import remarkWikiLink from './src/plugins/remark-wiki-link.js'
 import rehypeAutolinkHeadings from './src/plugins/rehype-auto-link-headings.ts'
 import rehypeExternalLinks from './src/plugins/rehype-external-links.ts'
 import rehypeTable from './src/plugins/rehype-table.ts'
+import remarkPele from './src/plugins/remark-pele.ts'
+import peleIntegration from './src/integrations/pele.ts'
 import { remarkAddZoomable, remarkReadingTime } from './src/plugins/remark-plugins.ts'
 import { remarkResolveVaultLinks } from './src/plugins/remark-resolve-vault-links.ts'
 // Shiki
@@ -83,6 +85,7 @@ export default defineConfig({
       remarkPlugins: [
         remarkMath,
         remarkBreaks,
+        remarkPele(vaultLinkIndex),
         [
           remarkWikiLink,
           {
@@ -151,5 +154,5 @@ export default defineConfig({
   },
 
   // [Integrations]
-  integrations: [mdx({ optimize: true }), sitemap(), UnoCSS({ injectReset: true })]
+  integrations: [peleIntegration(), mdx({ optimize: true }), sitemap(), UnoCSS({ injectReset: true })]
 })

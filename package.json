@@ -33,6 +33,7 @@
     "micromark-util-character": "^2.1.1",
     "micromark-util-symbol": "^2.0.1",
     "node-html-parser": "^9.0.5",
+    "pele": "^1.13.0",
     "reading-time": "^1.5.0",
     "rehype": "^13.0.2",
     "rehype-callouts": "^2.2.0",

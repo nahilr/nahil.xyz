@@ -37,6 +37,81 @@
   --input: 240 3.7% 17.9%;
   --ring: 240 4.9% 83.9%;
 }
+
+.pele-diagram {
+  /* Light palette follows the site's cool white, slate, and steel-blue tokens. */
+  --pele-bg: hsl(var(--background));
+  --pele-fg: hsl(var(--foreground));
+  --pele-fg-on-light: #181a20;
+  --pele-fg-on-dark: #f8fbfc;
+  --pele-muted: hsl(var(--muted-foreground));
+  --pele-line: hsl(var(--muted-foreground));
+  --pele-surface: hsl(var(--muted));
+  --pele-surface-alt: hsl(var(--card));
+  --pele-border: hsl(var(--muted-foreground));
+  --pele-accent: hsl(var(--primary));
+  --pele-critical: #97451e;
+  --pele-error: #9a4145;
+  --pele-font: var(--font-satoshi);
+  --pele-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --pele-title-weight: 600;
+  --pele-heading-weight: 600;
+  --pele-bold-weight: 600;
+  --pele-radius: var(--radius);
+  --pele-series-1: #315f7c;
+  --pele-series-2: #145f65;
+  --pele-series-3: #366c45;
+  --pele-series-4: #80551d;
+  --pele-series-5: #97451e;
+  --pele-series-6: #9a4145;
+  --pele-series-7: #634d80;
+  --pele-series-8: #475569;
+
+  box-sizing: border-box;
+  max-width: 100%;
+  margin-block: 1.5rem;
+  padding: 0;
+  overflow-x: auto;
+  border: 0;
+  background: transparent;
+  font-family: var(--pele-font);
+  white-space: pre-wrap;
+}
+
+/* Markdown typography gives ordinary <pre> blocks a code background. */
+.prose pre.pele-diagram {
+  background-color: transparent;
+  color: hsl(var(--foreground));
+}
+
+.dark .pele-diagram {
+  /* Keep diagrams bright enough to read on the site's near-black canvas. */
+  --pele-bg: hsl(var(--background));
+  --pele-fg: hsl(var(--foreground));
+  --pele-muted: hsl(var(--muted-foreground));
+  --pele-line: hsl(var(--muted-foreground));
+  --pele-surface: hsl(var(--muted));
+  --pele-surface-alt: hsl(var(--card));
+  --pele-border: hsl(var(--muted-foreground));
+  --pele-accent: hsl(var(--primary));
+  --pele-critical: #ed9a85;
+  --pele-error: #ed9a85;
+  --pele-series-1: #8dbbd3;
+  --pele-series-2: #82c6bf;
+  --pele-series-3: #a7c98a;
+  --pele-series-4: #e1c17a;
+  --pele-series-5: #ed9a85;
+  --pele-series-6: #dc9cb3;
+  --pele-series-7: #b8a5d7;
+  --pele-series-8: #aab5c4;
+}
+
+.pele-diagram svg {
+  display: block;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
 :root {
   --un-default-border-color: hsl(var(--border) / 1);
 }
