@@ -16,7 +16,7 @@ A fast, elegant personal website combining **blog** and **knowledge vault** - bu
 
 #### 📚 Obsidian Vault Integration
 
-- **Wikilinks Support**: Full support via `@flowershow/remark-wiki-link` with proper permalink resolution
+- **Wikilinks Support**: Full support via the vendored `src/plugins/remark-wiki-link.js` plugin (originally `@flowershow/remark-wiki-link`) with proper permalink resolution
 - **Title Preservation**: File system mapping preserves original casing/symbols
 - **Folder Notes**: Support for index.md/README.md patterns
 - **Auto-Generated Titles**: Automatic title generation from filenames with symbol handling
@@ -47,6 +47,7 @@ A fast, elegant personal website combining **blog** and **knowledge vault** - bu
 - **Math Support**: KaTeX rendering for mathematical expressions
 - **Callouts**: Full support for Obsidian-style callouts via `rehype-callouts`
 - **Code Blocks**: Custom transformers with syntax highlighting, copy button, and collapse
+- **Mermaid Diagrams**: ` ```mermaid ` blocks rendered client-side with [pele](https://pele.run) — themeable SVG output, KaTeX-measured labels, zoom controls, and `click ... href` links resolved through the vault index
 
 #### 🎨 UI Optimization
 
@@ -67,9 +68,12 @@ A fast, elegant personal website combining **blog** and **knowledge vault** - bu
 ### Installation
 
 ```shell
-# Clone repository
-git clone https://github.com/nahilr/nahil.xyz
+# Clone repository (content vault is a git submodule)
+git clone --recurse-submodules https://github.com/nahilr/nahil.xyz
 cd nahil.xyz
+
+# Or, after a plain clone:
+git submodule update --init
 
 # Install dependencies
 bun install
@@ -237,12 +241,13 @@ import config from '@/site-config'
 
 Inspired by [Astro Theme Pure](https://github.com/cworld1/astro-theme-pure), built as a standalone project:
 
-- **Framework**: [Astro](https://astro.build) 7.0.6 (Astro v7)
+- **Framework**: [Astro](https://astro.build) 7 (static output)
 - **Runtime**: [Bun](https://bun.sh) (Node.js compatible)
 - **Styling**: [UnoCSS](https://unocss.dev) with @unocss/preset-typography
 - **Graph Visualization**: [force-graph](https://github.com/vasturiano/force-graph)
+- **Diagrams**: [pele](https://pele.run) - fast, lightweight Mermaid renderer producing themeable SVG
 - **Markdown Processing**:
-  - **Remark**: remark-math, remark-breaks, @flowershow/remark-wiki-link, remarkResolveVaultLinks, reading-time
+  - **Remark**: remark-math, remark-breaks, remark-pele, vendored remark-wiki-link, remarkResolveVaultLinks, reading-time
   - **Rehype**: rehype-katex, rehype-callouts, rehype-autolink-headings
   - **Custom plugins**: Shiki transformers, code collapse, external links, image zoom
   - **Link Resolution**: VaultLinkIndex with github-slugger for heading fragments

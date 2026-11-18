@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { getCollection } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
 
-import { normalizeVaultSlug } from '@/utils/vault-link-index'
+import { normalizeVaultSlug, sanitizeSlugPart } from '@/utils/vault-link-index'
 
 export type VaultEntry = CollectionEntry<'vault'>
 const VAULT_CONTENT_PATH = './src/content/vault'
@@ -106,17 +106,6 @@ function getFallbackTitle(value: string): string {
   return value.replace(/[-_]/g, ' ')
 }
 
-//  Sanitize a path segment for URLs
-function sanitizeSlugPart(part: string): string {
-  return part
-    .toLowerCase()
-    .replace(/[&()[\]{}]/g, '') // Remove &, brackets, parens
-    .replace(/[,;:!?@#$%^*+=|\\/<>"'`~]/g, '') // Remove punctuation
-    .replace(/\s+/g, '-') // Spaces → dashes
-    .replace(/--+/g, '-') // Multiple dashes → single
-    .replace(/^-+|-+$/g, '') // Trim edge dashes
-}
-
 // Build map of normalized paths to original names with casing/symbols preserved
 function buildOriginalNameMap(basePath: string, prefix = ''): Record<string, string> {
   const map: Record<string, string> = {}
@@ -195,7 +184,7 @@ function isFolderNote(entryId: string): boolean {
   return sourcePath ? /\/(index|README)\.(md|mdx)$/i.test(sourcePath) : false
 }
 
-export { normalizeVaultSlug }
+export { normalizeVaultSlug, sanitizeSlugPart }
 
 /**
  * Get a human-readable folder path from a vault entry id.
@@ -262,20 +251,20 @@ export async function getEnrichedVaultCollection(
     const isFolder = isFolderNote(entry.id)
     const isMetadataOnly = metadataOnlyFolderNoteSlugs.has(slug)
 
-    // Auto-generate title if missing
-    if (!entry.data.title) {
-      entry.data.title =
-        originalNameMap[slug] ||
-        entry.id
-          .split('/')
-          .pop()
-          ?.replace(/\.(md|mdx)$/, '')
-          .replace(/[-_]/g, ' ') ||
-        slug
-    }
+    // Auto-generate a title if missing, without mutating the raw collection entry
+    const title =
+      entry.data.title ||
+      originalNameMap[slug] ||
+      entry.id
+        .split('/')
+        .pop()
+        ?.replace(/\.(md|mdx)$/, '')
+        .replace(/[-_]/g, ' ') ||
+      slug
 
     return {
       ...entry,
+      data: { ...entry.data, title },
       slug,
       isFolderNote: isFolder,
       isMetadataOnlyFolderNote: isMetadataOnly,
@@ -419,7 +408,8 @@ export function groupCollectionsByYear(
 }
 
 export function sortMDByDate(collections: EnrichedVaultEntry[]): EnrichedVaultEntry[] {
-  return collections.sort((a, b) => {
+  // Sort a copy so the caller's array is left untouched
+  return [...collections].sort((a, b) => {
     const aDate = new Date(a.data.updatedDate ?? a.data.publishDate ?? 0).valueOf()
     const bDate = new Date(b.data.updatedDate ?? b.data.publishDate ?? 0).valueOf()
     return bDate - aDate

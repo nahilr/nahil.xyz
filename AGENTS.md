@@ -2,7 +2,9 @@
 
 ## Architecture Overview
 
-This is a **standalone Astro (v6) static site** inspired by [Astro Theme Pure](https://github.com/cworld1/astro-theme-pure), combining a blog with Obsidian-compatible vault integration. Deployed on Cloudflare Pages with Wrangler.
+This is a **standalone Astro (v7) static site** inspired by [Astro Theme Pure](https://github.com/cworld1/astro-theme-pure), combining a blog with Obsidian-compatible vault integration. Deployed on Cloudflare Pages with Wrangler.
+
+> **Note**: The vault content in `src/content/vault/` is a **git submodule** (`nahilr/vault`). Clone with `git clone --recurse-submodules`, or run `git submodule update --init` after cloning. Update it with `git submodule update --remote src/content/vault`.
 
 ### Key Design Patterns
 
@@ -86,16 +88,17 @@ heroImage: # Optional object. Renders a cover image layout with a blur overlay s
 
 ## Markdown Processing Pipeline
 
-### Remark Plugins (AST transforms, [astro.config.ts](astro.config.ts) L80-98)
+### Remark Plugins (AST transforms, [astro.config.ts](astro.config.ts) L85-102)
 
 1. **remarkMath** - Parses LaTeX math expressions
 2. **remarkBreaks** - **Critical**: Single newlines → `<br>` (Obsidian compatibility)
-3. **remarkWikiLink** (`@flowershow/remark-wiki-link`) - Converts `[[wikilinks]]` to proper URLs using permalink map
-4. **remarkResolveVaultLinks** ([src/plugins/remark-resolve-vault-links.ts](src/plugins/remark-resolve-vault-links.ts)) - Resolves standard links, images, wikilinks, and embeds through VaultLinkIndex. Handles heading fragments, relative/absolute paths, and Obsidian-style image metadata (`![[image.png|200x100|alt]]`)
-5. **remarkAddZoomable** - Adds `.zoomable` class to images for medium-zoom
-6. **remarkReadingTime** - Injects reading time into frontmatter
+3. **remarkPele** ([src/plugins/remark-pele.ts](src/plugins/remark-pele.ts)) - Rewrites ` ```mermaid ` code blocks into `<pre class="pele-diagram">` elements, resolving `click ... href` link targets through VaultLinkIndex. Rendered client-side by the pele integration ([src/integrations/pele.ts](src/integrations/pele.ts))
+4. **remarkWikiLink** (vendored at [src/plugins/remark-wiki-link.js](src/plugins/remark-wiki-link.js), originally `@flowershow/remark-wiki-link`) - Converts `[[wikilinks]]` to proper URLs using permalink map
+5. **remarkResolveVaultLinks** ([src/plugins/remark-resolve-vault-links.ts](src/plugins/remark-resolve-vault-links.ts)) - Resolves standard links, images, wikilinks, and embeds through VaultLinkIndex. Handles heading fragments, relative/absolute paths, and Obsidian-style image metadata (`![[image.png|200x100|alt]]`)
+6. **remarkAddZoomable** - Adds `.zoomable` class to images for medium-zoom
+7. **remarkReadingTime** - Injects reading time into frontmatter
 
-### Rehype Plugins (HTML transforms, [astro.config.ts](astro.config.ts) L100-120)
+### Rehype Plugins (HTML transforms, [astro.config.ts](astro.config.ts) L103-123)
 
 1. **rehypeKatex** - Renders math with KaTeX
 2. **rehypeHeadingIds** - Adds IDs to headings for anchor links
@@ -106,7 +109,7 @@ heroImage: # Optional object. Renders a cover image layout with a blur overlay s
 
 ### Shiki Code Block Transformers ([src/plugins/shiki-custom-transformers.ts](src/plugins/shiki-custom-transformers.ts))
 
-Custom transformers (L21-153):
+Custom transformers (L21-152):
 
 - `updateStyle()` - Wraps code in nested `<div><pre>` structure
 - `addTitle()` - Extracts title from meta string (e.g., ```ts title="file.ts"`)
@@ -136,28 +139,31 @@ import config from '@/site-config'
 
 ### Vault URL Sanitization
 
-**Single source of truth** in [src/utils/vault-link-index.ts](src/utils/vault-link-index.ts) `normalizeVaultSlug()`:
+**Single source of truth** in [src/utils/vault-link-index.ts](src/utils/vault-link-index.ts): `sanitizeSlugPart()` sanitizes one path segment, and `normalizeVaultSlug()` applies it to entry IDs (also stripping `/index` and `/README` suffixes for folder notes):
 
 ```typescript
-function normalizeVaultSlug(id: string): string {
-  return id
-    .replace(/\.(md|mdx)$/, '')
+export function sanitizeSlugPart(part: string): string {
+  return part
+    .toLowerCase()
+    .replace(/[&()[\]{}]/g, '') // Remove &, brackets, parens
+    .replace(/[,;:!?@#$%^*+=|\\/<>"'`~]/g, '') // Remove punctuation
+    .replace(/\s+/g, '-') // Spaces → dashes
+    .replace(/--+/g, '-') // Multiple dashes → single
+    .replace(/^-+|-+$/g, '') // Trim edge dashes
+}
+
+export function normalizeVaultSlug(id: string): string {
+  const withoutExtension = id.replace(/\.(md|mdx)$/i, '')
+  const withoutFolderNote = withoutExtension.replace(/\/(index|readme)$/i, '')
+  return withoutFolderNote
     .split('/')
     .filter(Boolean)
-    .map((part) =>
-      part
-        .toLowerCase()
-        .replace(/[&()[\]{}]/g, '') // Remove brackets/parens
-        .replace(/[,;:!?@#$%^*+=|\\/<>"'`~]/g, '') // Remove punctuation
-        .replace(/\s+/g, '-') // Spaces → dashes
-        .replace(/--+/g, '-') // Dedup dashes
-        .replace(/^-+|-+$/g, '') // Trim edge dashes
-    )
+    .map(sanitizeSlugPart)
     .join('/')
 }
 ```
 
-This is re-exported from `src/utils/vault.ts` for backward compatibility. The function also strips `/index` and `/README` suffixes for folder notes. File paths in `src/content/vault/subfolder/My Note.md` become `/vault/subfolder/my-note`.
+Both are re-exported from `src/utils/vault.ts` for backward compatibility. File paths in `src/content/vault/subfolder/My Note.md` become `/vault/subfolder/my-note`.
 
 ### Content Helpers ([src/utils/vault.ts](src/utils/vault.ts))
 
@@ -170,6 +176,7 @@ getUniqueVaultTagsWithCount() // Unified tag cloud matching
 getVaultTree() // Recursive tree for navigation (used by sidebar and dashboard)
 getVaultFlatList() // Flattened list of notes for pagination
 normalizeVaultSlug() // Re-exported from vault-link-index, converts entry IDs to URL slugs
+sanitizeSlugPart() // Re-exported from vault-link-index, sanitizes a single path segment (shared by all slug pipelines)
 ```
 
 ### Styling with UnoCSS
@@ -191,6 +198,7 @@ normalizeVaultSlug() // Re-exported from vault-link-index, converts entry IDs to
 
 ### Interactive Vault Features
 
+- **Mermaid Diagrams**: ` ```mermaid ` code blocks are transformed at build time ([src/plugins/remark-pele.ts](src/plugins/remark-pele.ts)) and rendered client-side with [pele](https://pele.run), a lightweight themeable Mermaid renderer injected by the pele integration ([src/integrations/pele.ts](src/integrations/pele.ts)). Supports KaTeX-measured labels, zoom controls, and `click ... href` navigation links resolved through VaultLinkIndex.
 - **Vault Network Graph**: Interactive node-link network visualization of vault notes and tags built with `force-graph` and processed via `src/utils/graph.ts`. Renders a local neighborhood view on note pages (`src/components/vault/VaultGraph.astro`) and lazy-loads the global graph JSON (`/vault/graph.json`) when launching the global graph modal.
 - **Backlinks Module**: Calculates incoming connections for notes and renders them under a collapsible section (`src/components/vault/Backlinks.astro`) in the right sidebar.
 - **Responsive Collapsible Sidebars**: Vault layout (`src/layouts/VaultLayout.astro`) organizes content with a left sidebar for desktop tree navigation and a right sidebar for table of contents, local graph, and backlinks. On viewport widths below 1280px (XL breakpoint), the right sidebar collapses into a drawer toggled by a floating list button.
@@ -202,7 +210,7 @@ normalizeVaultSlug() // Re-exported from vault-link-index, converts entry IDs to
 - Static output mode (`output: 'static'` in [astro.config.ts](astro.config.ts))
 - Site URL: `https://nahil.xyz/`
 
-### Fonts Configuration ([astro.config.ts](astro.config.ts) L99-108)
+### Fonts Configuration ([astro.config.ts](astro.config.ts) L70-80)
 
 - Configured directly under Astro's native `fonts` array config (using `fontProviders.fontshare()` for the "Satoshi" font).
 
@@ -210,10 +218,7 @@ normalizeVaultSlug() // Re-exported from vault-link-index, converts entry IDs to
 
 1. **Shiki transformer types**: Always `@ts-ignore` custom transformers due to nested `@shikijs/types` versions
 2. **Visibility filtering**: Use `getEnrichedVaultCollection()` helper, NOT raw `getCollection('vault')` to ensure entries with `publish: false` are filtered out in production.
-3. **Vault URL matching**: Sanitization must match exactly between:
-   - Permalink map generation ([src/utils/vault-link-index.ts](src/utils/vault-link-index.ts) `normalizeVaultSlug()`)
-   - `sanitizeSlugPart()` in [src/utils/vault.ts](src/utils/vault.ts)
-   - `remarkResolveVaultLinks` plugin ([src/plugins/remark-resolve-vault-links.ts](src/plugins/remark-resolve-vault-links.ts))
+3. **Vault URL matching**: Slug sanitization lives in **one place**: `sanitizeSlugPart()` in [src/utils/vault-link-index.ts](src/utils/vault-link-index.ts) (re-exported from [src/utils/vault.ts](src/utils/vault.ts)). Both `normalizeVaultSlug()` (permalink map) and the tree-building code in `src/utils/vault.ts` use it. If URL behavior changes, update it there only — never re-implement sanitization locally.
 4. **Line breaks**: `remark-breaks` makes single newlines create `<br>` (different from standard markdown)
 5. **Image paths**:
    - `/src/assets/` - Optimized images processed by Astro
@@ -229,6 +234,8 @@ normalizeVaultSlug() // Re-exported from vault-link-index, converts entry IDs to
 - [src/utils/vault-link-index.ts](src/utils/vault-link-index.ts) - Centralized link resolution index with slug normalization
 - [src/utils/graph.ts](src/utils/graph.ts) - Precomputes node-link graph relationships and backlinks
 - [src/plugins/remark-resolve-vault-links.ts](src/plugins/remark-resolve-vault-links.ts) - Remark plugin resolving links through VaultLinkIndex
+- [src/plugins/remark-pele.ts](src/plugins/remark-pele.ts) - Mermaid code block transformer with vault link resolution
+- [src/integrations/pele.ts](src/integrations/pele.ts) - Astro integration injecting the client-side pele/Mermaid hydration script
 - [src/components/vault/VaultGraph.astro](src/components/vault/VaultGraph.astro) - Force-directed interactive network graph
 - [src/components/vault/Backlinks.astro](src/components/vault/Backlinks.astro) - Backlinks list UI component
 - [src/pages/vault/graph.json.ts](src/pages/vault/graph.json.ts) - Lazy global graph data JSON endpoint

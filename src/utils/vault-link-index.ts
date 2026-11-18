@@ -34,23 +34,26 @@ interface Entry extends VaultResolution {
   headings: Map<string, string>
 }
 
+/**
+ * Sanitize a single path segment for vault URLs.
+ * Single source of truth shared by the permalink map, the vault tree, and
+ * every slug-matching pipeline (re-exported from `@/utils/vault`).
+ */
+export function sanitizeSlugPart(part: string): string {
+  return part
+    .toLowerCase()
+    .replace(/[&()[\]{}]/g, '') // Remove &, brackets, parens
+    .replace(/[,;:!?@#$%^*+=|\\/<>"'`~]/g, '') // Remove punctuation
+    .replace(/\s+/g, '-') // Spaces → dashes
+    .replace(/--+/g, '-') // Multiple dashes → single
+    .replace(/^-+|-+$/g, '') // Trim edge dashes
+}
+
 export function normalizeVaultSlug(id: string): string {
   const withoutExtension = id.replace(NOTE_EXTENSION, '')
   const withoutFolderNote = withoutExtension.replace(/\/(index|readme)$/i, '')
 
-  return withoutFolderNote
-    .split('/')
-    .filter(Boolean)
-    .map((part) =>
-      part
-        .toLowerCase()
-        .replace(/[&()[\]{}]/g, '')
-        .replace(/[,;:!?@#$%^*+=|\\/<>'"`~]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/--+/g, '-')
-        .replace(/^-+|-+$/g, '')
-    )
-    .join('/')
+  return withoutFolderNote.split('/').filter(Boolean).map(sanitizeSlugPart).join('/')
 }
 
 function normalizePath(value: string): string {
