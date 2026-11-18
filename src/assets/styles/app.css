@@ -38,6 +38,15 @@
   --ring: 240 4.9% 83.9%;
 }
 
+/* Vault graph legend swatches follow the same folder hue as the canvas. */
+.vault-graph-swatch {
+  background-color: hsl(var(--group-hue, 200) 32% 40%);
+}
+
+.dark .vault-graph-swatch {
+  background-color: hsl(var(--group-hue, 200) 38% 68%);
+}
+
 .pele-diagram {
   /* Light palette follows the site's cool white, slate, and steel-blue tokens. */
   --pele-bg: hsl(var(--background));

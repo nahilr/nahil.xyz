@@ -1,6 +1,7 @@
 ---
 import { Icon } from '@/components/user'
 import { getVaultGraphData } from '@/utils/graph'
+import type { GraphData } from '@/utils/graph'
 
 interface Props {
   localSlug?: string
@@ -17,138 +18,77 @@ const {
   class: className,
   modalOnly = false
 } = Astro.props
-const allData = modalOnly
-  ? { nodes: [], links: [], linksMap: {}, backlinksMap: {} }
-  : await getVaultGraphData()
 
-let localData = { nodes: allData.nodes, links: allData.links }
+const allData: GraphData | null = modalOnly ? null : await getVaultGraphData()
 
-if (localSlug) {
-  // Build neighborhood
-  const neighbors = new Set<string>()
-  neighbors.add(localSlug)
+let localData: Pick<GraphData, 'nodes' | 'links'> = { nodes: [], links: [] }
 
-  if (allData.linksMap[localSlug]) {
-    allData.linksMap[localSlug].forEach((n) => neighbors.add(n))
+if (allData) {
+  if (localSlug) {
+    const neighbors = new Set<string>([localSlug])
+
+    allData.linksMap[localSlug]?.forEach((node) => neighbors.add(node))
+    allData.backlinksMap[localSlug]?.forEach((node) => neighbors.add(node))
+
+    localData = {
+      nodes: allData.nodes.filter((node) => neighbors.has(node.id)),
+      links: allData.links.filter(
+        (link) => neighbors.has(link.source) && neighbors.has(link.target)
+      )
+    }
+  } else {
+    localData = { nodes: allData.nodes, links: allData.links }
   }
-  if (allData.backlinksMap[localSlug]) {
-    allData.backlinksMap[localSlug].forEach((n) => neighbors.add(n))
-  }
-
-  const localNodes = allData.nodes.filter((n) => neighbors.has(n.id))
-  // only keep links between neighbors
-  const localLinks = allData.links.filter((l) => neighbors.has(l.source) && neighbors.has(l.target))
-
-  localData = { nodes: localNodes, links: localLinks }
 }
+
+const resolvedHeight = typeof height === 'number' ? `${height}px` : height
+const resolvedWidth = typeof width === 'number' ? `${width}px` : width
+const safeSlug = (localSlug || 'global').replace(/[^a-z0-9-]/gi, '-')
+const componentId = `vault-graph-component-${safeSlug}`
+const modalTitleId = `vault-graph-title-${safeSlug}`
+const hasLocalGraph = localData.nodes.length > 0
 ---
 
-<div
-  class={`flex flex-col ${className || ''}`}
-  id={`vault-graph-component-${localSlug || 'global'}`}
->
-  <!-- Iris-style Header / Trigger Button -->
-  {
-    modalOnly ? (
-      <button
-        type='button'
-        class='global-graph-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer text-sm font-medium'
-        title='Open Global Graph'
-        aria-label='Open Global Graph'
+<div class={`flex flex-col ${className || ''}`} id={componentId}>
+  {modalOnly ? (
+    <button
+      type='button'
+      class='global-graph-btn flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer'
+      title='Open global graph'
+      aria-label='Open global graph'
+    >
+      <svg
+        class='size-4.5'
+        xmlns='http://www.w3.org/2000/svg'
+        width='1em'
+        height='1em'
+        viewBox='0 0 24 24'
       >
-        <svg
-          class='size-4.5'
-          xmlns='http://www.w3.org/2000/svg'
-          width='1em'
-          height='1em'
-          viewBox='0 0 24 24'
-        >
-          <path
-            fill='none'
-            stroke='currentColor'
-            stroke-linecap='round'
-            stroke-linejoin='round'
-            stroke-miterlimit='10'
-            d='M13.5 13.25L10 15.5l-3.5-2.25v-3.5L10 7.5l3.5 2.25zm-9-6.5L2.5 8l-2-1.25v-2l2-1.25l2 1.25zm15-2L17.5 6l-2-1.25v-2l2-1.25l2 1.25zm-15 16.5l-2 1.25l-2-1.25v-2l2-1.25l2 1.25zm16.5 1l-2 1.25l-2-1.25v-2L19 19l2 1.25zm1.5-9.75l-2 1.25l-2-1.25v-2l2-1.25l2 1.25zm-16-2.75L3.813 7.18m13.883 12.635l-5.968-5.426M18.5 11.5h-5m-5.548 2.684l-4.27 4.555M16.318 5.261l-3.686 3.931'
-          />
-        </svg>
-        Open Graph
-      </button>
-    ) : localSlug ? (
-      <details class='group' open>
-        <summary class='font-medium py-2 flex items-center justify-between text-muted-foreground uppercase text-xs tracking-wider cursor-pointer list-none select-none hover:text-foreground'>
-          <span class='flex items-center gap-2'>GRAPH</span>
-          <div class='flex items-center gap-2'>
-            <slot name='controls'>
-              <button
-                class='global-graph-btn text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-sm cursor-pointer'
-                title='Global Graph'
-                aria-label='Open Global Graph'
-              >
-                <svg
-                  class='size-4'
-                  xmlns='http://www.w3.org/2000/svg'
-                  width='1em'
-                  height='1em'
-                  viewBox='0 0 24 24'
-                >
-                  <path
-                    fill='none'
-                    stroke='currentColor'
-                    stroke-linecap='round'
-                    stroke-linejoin='round'
-                    stroke-miterlimit='10'
-                    d='M13.5 13.25L10 15.5l-3.5-2.25v-3.5L10 7.5l3.5 2.25zm-9-6.5L2.5 8l-2-1.25v-2l2-1.25l2 1.25zm15-2L17.5 6l-2-1.25v-2l2-1.25l2 1.25zm-15 16.5l-2 1.25l-2-1.25v-2l2-1.25l2 1.25zm16.5 1l-2 1.25l-2-1.25v-2L19 19l2 1.25zm1.5-9.75l-2 1.25l-2-1.25v-2l2-1.25l2 1.25zm-16-2.75L3.813 7.18m13.883 12.635l-5.968-5.426M18.5 11.5h-5m-5.548 2.684l-4.27 4.555M16.318 5.261l-3.686 3.931'
-                  />
-                </svg>
-              </button>
-            </slot>
-            <Icon
-              name='chevron-down'
-              class='size-4 transition-transform duration-200 group-open:rotate-180'
-            />
-          </div>
-        </summary>
-        <div
-          class='relative overflow-hidden rounded-lg border border-border/70 bg-transparent'
-          style={{
-            height: typeof height === 'number' ? `${height}px` : height,
-            width: typeof width === 'number' ? `${width}px` : width
-          }}
-        >
-          <div
-            class='vault-graph w-full h-full'
-            data-graph={JSON.stringify(localData)}
-            data-local={localSlug || ''}
-          />
-        </div>
-      </details>
-    ) : (
-      <div
-        class='relative overflow-hidden rounded-lg border border-border/70 bg-transparent'
-        style={{
-          height: typeof height === 'number' ? `${height}px` : height,
-          width: typeof width === 'number' ? `${width}px` : width
-        }}
-      >
-        <div
-          class='vault-graph w-full h-full'
-          data-graph={JSON.stringify(localData)}
-          data-local={localSlug || ''}
+        <path
+          fill='none'
+          stroke='currentColor'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          stroke-miterlimit='10'
+          d='M13.5 13.25L10 15.5l-3.5-2.25v-3.5L10 7.5l3.5 2.25zm-9-6.5L2.5 8l-2-1.25v-2l2-1.25l2 1.25zm15-2L17.5 6l-2-1.25v-2l2-1.25l2 1.25zm-15 16.5l-2 1.25l-2-1.25v-2l2-1.25l2 1.25zm16.5 1l-2 1.25l-2-1.25v-2L19 19l2 1.25zm1.5-9.75l-2 1.25l-2-1.25v-2l2-1.25l2 1.25zm-16-2.75L3.813 7.18m13.883 12.635l-5.968-5.426M18.5 11.5h-5m-5.548 2.684l-4.27 4.555M16.318 5.261l-3.686 3.931'
         />
-      </div>
-    )
-  }
-
-  <!-- Global Graph Overlay Modal -->
-  {
-    (localSlug || modalOnly) && (
-      <dialog class='vault-global-graph-modal fixed inset-0 z-[100] m-0 h-[100dvh] max-h-screen w-screen border-none bg-background p-0 text-foreground opacity-0 pointer-events-none transition-opacity duration-300'>
-        <div class='w-full h-full flex flex-col p-4 md:p-8'>
-          <div class='flex items-center justify-between mb-4 z-10 flex-shrink-0'>
-            <h2 class='font-medium text-muted-foreground uppercase tracking-widest text-sm flex items-center gap-2'>
+      </svg>
+      Open graph
+    </button>
+  ) : localSlug ? (
+    <details class='group' open>
+      <summary class='font-medium py-2 flex items-center justify-between text-muted-foreground uppercase text-xs tracking-wider cursor-pointer list-none select-none hover:text-foreground'>
+        <span class='flex items-center gap-2'>GRAPH</span>
+        <div class='flex items-center gap-2'>
+          <slot name='controls'>
+            <button
+              type='button'
+              class='global-graph-btn text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-sm cursor-pointer'
+              title='Global graph'
+              aria-label='Open global graph'
+            >
               <svg
-                class='size-5'
+                class='size-4'
                 xmlns='http://www.w3.org/2000/svg'
                 width='1em'
                 height='1em'
@@ -163,34 +103,149 @@ if (localSlug) {
                   d='M13.5 13.25L10 15.5l-3.5-2.25v-3.5L10 7.5l3.5 2.25zm-9-6.5L2.5 8l-2-1.25v-2l2-1.25l2 1.25zm15-2L17.5 6l-2-1.25v-2l2-1.25l2 1.25zm-15 16.5l-2 1.25l-2-1.25v-2l2-1.25l2 1.25zm16.5 1l-2 1.25l-2-1.25v-2L19 19l2 1.25zm1.5-9.75l-2 1.25l-2-1.25v-2l2-1.25l2 1.25zm-16-2.75L3.813 7.18m13.883 12.635l-5.968-5.426M18.5 11.5h-5m-5.548 2.684l-4.27 4.555M16.318 5.261l-3.686 3.931'
                 />
               </svg>
-              VAULT GRAPH
+            </button>
+          </slot>
+          <Icon
+            name='chevron-down'
+            class='size-4 transition-transform duration-200 group-open:rotate-180'
+          />
+        </div>
+      </summary>
+      {hasLocalGraph ? (
+        <div
+          class='relative overflow-hidden rounded-lg border border-border/70 bg-transparent'
+          style={{ height: resolvedHeight, width: resolvedWidth }}
+        >
+          <div
+            class='vault-graph h-full w-full'
+            data-graph={JSON.stringify(localData)}
+            data-local={localSlug}
+            role='img'
+            aria-label={
+              localData.nodes.length > 1
+                ? `Graph with ${localData.nodes.length - 1} connected notes`
+                : 'Local graph'
+            }
+          />
+          <div
+            data-local-loading
+            class='pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background text-[11px] text-muted-foreground'
+            role='status'
+          >
+            <div class='vault-graph-loader' aria-hidden='true'>
+              <span />
+              <span />
+              <span />
+            </div>
+            <p>Loading graph…</p>
+          </div>
+        </div>
+      ) : (
+        <div
+          class='flex items-center justify-center rounded-lg border border-dashed border-border/70 px-3 text-center'
+          style={{ height: resolvedHeight, width: resolvedWidth }}
+        >
+          <p class='text-xs text-muted-foreground'>No connections yet.</p>
+        </div>
+      )}
+    </details>
+  ) : (
+    <div
+      class='relative overflow-hidden rounded-lg border border-border/70 bg-transparent'
+      style={{ height: resolvedHeight, width: resolvedWidth }}
+    >
+      <div
+        class='vault-graph h-full w-full'
+        data-graph={JSON.stringify(localData)}
+        data-local=''
+        aria-label='Vault graph'
+      />
+    </div>
+  )}
+
+  {(localSlug || modalOnly) && (
+    <dialog
+      class='vault-global-graph-modal fixed inset-0 z-[100] m-0 h-[100dvh] max-h-screen w-screen max-w-none border-none bg-background p-0 text-foreground'
+      aria-labelledby={modalTitleId}
+    >
+      <div class='flex h-full w-full flex-col p-4 md:p-6'>
+        <div class='mb-4 flex flex-shrink-0 items-start justify-between gap-4'>
+          <div class='min-w-0'>
+            <h2 id={modalTitleId} class='text-sm font-semibold tracking-tight text-foreground'>
+              Vault graph
             </h2>
-            <button
-              class='close-global-graph hover:bg-muted p-2 rounded-full cursor-pointer transition-colors'
-              aria-label='Close Global Graph'
+            <p class='graph-stats mt-1 text-xs text-muted-foreground'>Loading…</p>
+          </div>
+          <button
+            type='button'
+            class='close-global-graph rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer'
+            aria-label='Close graph'
+          >
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              width='18'
+              height='18'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              stroke-width='2'
+              stroke-linecap='round'
+              stroke-linejoin='round'
             >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='20'
-                height='20'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                stroke-width='2'
-                stroke-linecap='round'
-                stroke-linejoin='round'
-              >
-                <line x1='18' y1='6' x2='6' y2='18' />
-                <line x1='6' y1='6' x2='18' y2='18' />
-              </svg>
+              <line x1='18' y1='6' x2='6' y2='18' />
+              <line x1='6' y1='6' x2='18' y2='18' />
+            </svg>
+          </button>
+        </div>
+
+        <div class='relative flex-1 w-full overflow-hidden rounded-xl border border-border bg-background'>
+          <div
+            class='vault-graph h-full w-full'
+            data-global='true'
+            role='img'
+            aria-label='Global vault graph'
+            style='display: none'
+          />
+
+          <div
+            data-graph-loading
+            class='absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background text-xs text-muted-foreground'
+            role='status'
+          >
+            <div class='vault-graph-loader' aria-hidden='true'>
+              <span />
+              <span />
+              <span />
+            </div>
+            <p>Loading graph…</p>
+          </div>
+
+          <div
+            data-graph-error
+            class='absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background px-6 text-center'
+            style='display: none'
+          >
+            <p data-graph-error-message class='text-sm text-muted-foreground'>
+              Could not load the graph.
+            </p>
+            <button
+              type='button'
+              data-graph-retry
+              class='rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer'
+            >
+              Try again
             </button>
           </div>
-          <div class='relative flex-1 w-full overflow-hidden rounded-xl border border-border bg-card'>
-            <div class='vault-graph w-full h-full' data-global='true' />
-            <div class='absolute top-3 right-3 z-10 flex items-center gap-1 select-none'>
-              <span class='graph-stats mr-1 text-xs text-muted-foreground/80 whitespace-nowrap' />
+
+          <div class='pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3'>
+            <div
+              data-graph-legend
+              class='pointer-events-auto hidden max-w-[65%] flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground max-sm:hidden sm:flex'
+            />
+            <div class='pointer-events-auto ml-auto flex flex-shrink-0 items-center gap-1'>
               <button
-                class='size-7 rounded-md border border-border bg-card/90 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer'
+                type='button'
+                class='size-7 rounded-md border border-border bg-background/90 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer'
                 data-graph-action='zoom-out'
                 aria-label='Zoom out'
                 title='Zoom out'
@@ -198,7 +253,8 @@ if (localSlug) {
                 −
               </button>
               <button
-                class='size-7 rounded-md border border-border bg-card/90 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer'
+                type='button'
+                class='size-7 rounded-md border border-border bg-background/90 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer'
                 data-graph-action='zoom-in'
                 aria-label='Zoom in'
                 title='Zoom in'
@@ -206,7 +262,8 @@ if (localSlug) {
                 +
               </button>
               <button
-                class='size-7 rounded-md border border-border bg-card/90 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer'
+                type='button'
+                class='size-7 rounded-md border border-border bg-background/90 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer'
                 data-graph-action='fit'
                 aria-label='Fit to view'
                 title='Fit to view'
@@ -215,299 +272,444 @@ if (localSlug) {
               </button>
             </div>
           </div>
+
+          <p class='pointer-events-none absolute inset-x-0 bottom-3 hidden text-center text-[11px] text-muted-foreground/70 sm:block'>
+            Click a node to open · drag to arrange · scroll to zoom
+          </p>
         </div>
-      </dialog>
-    )
-  }
+      </div>
+    </dialog>
+  )}
 </div>
 
 <script>
-  import ForceGraph from 'force-graph'
+  import type { GraphData, GraphGroup, GraphStats } from '@/utils/graph'
+  import { getFolderHue } from '@/utils/graph-palette'
 
-  function createGraph(container: any, gData: any, localSlug: string) {
-    const wrapper = container.parentElement
-    if (!wrapper) return null
+  import { createVaultGraph, preloadVaultGraph } from './graph/renderer'
+  import type { VaultGraphHandle } from './graph/renderer'
 
-    const style = getComputedStyle(document.body)
-    const parseHsl = (varName: string, alpha = 1) => {
-      const val = style.getPropertyValue(varName).trim()
-      if (!val) return `rgba(150, 150, 150, ${alpha})`
-      return `hsl(${val} / ${alpha})`
-    }
-
-    const primary = parseHsl('--primary')
-    const isGlobal = !localSlug
-
-    let hoverNode: any = null
-    let hoverNeighbors = new Set<string>()
-    const neighborMap = new Map<string, Set<string>>()
-
-    gData.links.forEach((link: any) => {
-      const source = link.source.id ?? link.source
-      const target = link.target.id ?? link.target
-      neighborMap.set(source, (neighborMap.get(source) ?? new Set()).add(target))
-      neighborMap.set(target, (neighborMap.get(target) ?? new Set()).add(source))
-    })
-
-    // @ts-ignore
-    const ForceGraphFn = (ForceGraph.default || ForceGraph) as any
-    const Graph = ForceGraphFn()
-
-    const rMultiplier = isGlobal ? 3.5 : 2.5
-    const rBase = isGlobal ? 5 : 4
-    // Match the pointer-hit radius to the drawn radius so hover feels accurate.
-    Graph.nodeRelSize(rMultiplier)
-
-    Graph(container)
-      .graphData(gData)
-      .width(wrapper.offsetWidth)
-      .height(wrapper.offsetHeight)
-      .nodeId('id')
-      .nodeLabel('name')
-      .nodeVal('val')
-      .onNodeHover((node: any) => {
-        hoverNode = node
-        hoverNeighbors = node
-          ? new Set([node.id, ...(neighborMap.get(node.id) ?? [])])
-          : new Set<string>()
-      })
-      .linkColor((link: any) => {
-        if (hoverNode) {
-          const s = link.source.id ?? link.source
-          const t = link.target.id ?? link.target
-          const connected = s === hoverNode.id || t === hoverNode.id
-          return connected
-            ? parseHsl('--muted-foreground', 0.7)
-            : parseHsl('--muted-foreground', 0.08)
-        }
-        return parseHsl('--muted-foreground', 0.3)
-      })
-      .linkWidth((link: any) => {
-        if (hoverNode) {
-          const s = link.source.id ?? link.source
-          const t = link.target.id ?? link.target
-          return s === hoverNode.id || t === hoverNode.id ? 1.8 : 0.8
-        }
-        return 1
-      })
-      .linkDirectionalArrowLength(3.5)
-      .linkDirectionalArrowRelPos(1)
-      .nodeCanvasObject((node: any, ctx: any, globalScale: any) => {
-        const isNeighbor = hoverNeighbors.has(node.id)
-        const isHovered = hoverNode === node
-        const isActive = localSlug && node.id === localSlug
-
-        let alpha = 1
-        if (hoverNode && !isNeighbor && !isHovered) {
-          alpha = 0.15
-        }
-
-        const r = Math.max(rBase, Math.sqrt(node.val) * rMultiplier)
-
-        ctx.beginPath()
-        ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false)
-
-        if (isActive) {
-          ctx.fillStyle = primary
-        } else if (isHovered || isNeighbor) {
-          ctx.fillStyle = parseHsl('--primary', 0.2 * alpha)
-        } else {
-          ctx.fillStyle = parseHsl('--muted-foreground', 0.4 * alpha)
-        }
-        ctx.fill()
-
-        ctx.lineWidth = isActive || isHovered ? 2 : 1
-        if (isActive) {
-          ctx.strokeStyle = primary
-        } else if (isHovered || isNeighbor) {
-          ctx.strokeStyle = parseHsl('--primary', 0.7 * alpha)
-        } else {
-          ctx.strokeStyle = parseHsl('--border', alpha * 0.9)
-        }
-        ctx.stroke()
-
-        // Local graphs are note context maps, so their node names stay visible.
-        const labelThreshold = isGlobal ? 0.4 : 1.2
-        const showLabel =
-          !isGlobal ||
-          isActive ||
-          isHovered ||
-          (hoverNode && isNeighbor) ||
-          globalScale > labelThreshold
-        if (showLabel) {
-          const label = node.name
-          const fontSize = 10 / globalScale
-          ctx.font = `${fontSize}px "Satoshi", sans-serif`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'top'
-          ctx.fillStyle = isActive ? primary : parseHsl('--foreground', alpha * 0.85)
-          ctx.fillText(label, node.x, node.y + r + 3)
-        }
-      })
-      .onNodeClick((node: any) => {
-        window.location.href = `/vault/${node.id}`
-      })
-
-    // @ts-ignore
-    Graph.d3Force('charge')
-      .strength(isGlobal ? -520 : -180)
-      .distanceMax(isGlobal ? 900 : 250)
-    // @ts-ignore
-    Graph.d3Force('link').distance(isGlobal ? 90 : 40)
-    // @ts-ignore
-    Graph.d3Force('center').strength(isGlobal ? 0.08 : 0.4)
-    Graph.d3VelocityDecay(isGlobal ? 0.42 : 0.4)
-      .warmupTicks(isGlobal ? 180 : 40)
-      .cooldownTicks(isGlobal ? 300 : 120)
-
-    const resizeObserver = new ResizeObserver(() => {
-      if (wrapper.offsetWidth > 0 && wrapper.offsetHeight > 0) {
-        Graph.width(wrapper.offsetWidth)
-        Graph.height(wrapper.offsetHeight)
-      }
-    })
-    resizeObserver.observe(wrapper)
-
-    document.addEventListener(
-      'astro:before-swap',
-      () => {
-        resizeObserver.disconnect()
-        // @ts-ignore
-        if (Graph._destructor) Graph._destructor()
-        // @ts-ignore
-        else if (Graph.pauseAnimation) Graph.pauseAnimation()
-      },
-      { once: true }
-    )
-
-    return Graph
+  type GraphPayload = Pick<GraphData, 'nodes' | 'links'> & {
+    groups?: GraphGroup[]
+    stats?: GraphStats
   }
 
-  function initGraphs() {
-    // 1. Initialize inline standard graphs
-    const inlineContainers = document.querySelectorAll('.vault-graph:not([data-global="true"])')
-    inlineContainers.forEach((container) => {
-      // @ts-ignore
-      if (container.dataset.rendered === 'true') return
-      // @ts-ignore
-      container.dataset.rendered = 'true'
-      // @ts-ignore
-      const rawData = container.dataset.graph
-      if (!rawData) return
-      const gData = JSON.parse(rawData)
-      // @ts-ignore
-      createGraph(container, gData, container.dataset.local || '')
-    })
+  const activeHandles: VaultGraphHandle[] = []
+  let graphDataPromise: Promise<GraphPayload> | null = null
+  let prefetchTimer: number | null = null
 
-    // 2. Map Dialog Toggles
-    const components = document.querySelectorAll('[id^="vault-graph-component-"]')
-    components.forEach((comp) => {
-      // @ts-ignore
-      if (comp.dataset.modalSetup === 'true') return
-      // @ts-ignore
-      comp.dataset.modalSetup = 'true'
+  function loadGraphData(): Promise<GraphPayload> {
+    if (!graphDataPromise) {
+      graphDataPromise = fetch('/vault/graph.json')
+        .then((response) => {
+          if (!response.ok) throw new Error(`Graph request failed (${response.status})`)
+          return response.json() as Promise<GraphPayload>
+        })
+        .catch((error) => {
+          graphDataPromise = null
+          throw error
+        })
+    }
+    return graphDataPromise
+  }
 
-      const btn = comp.querySelector('.global-graph-btn')
-      const modal = comp.querySelector('.vault-global-graph-modal')
-      const closeBtn = comp.querySelector('.close-global-graph')
-      const globalGraphContainer = comp.querySelector('.vault-graph[data-global="true"]')
+  function prefetchGraph() {
+    void preloadVaultGraph()
+    void loadGraphData().catch(() => undefined)
+  }
 
-      if (btn && modal && globalGraphContainer) {
-        let globalGraphInstance: any = null
+  function parseGraphData(raw: string): Pick<GraphData, 'nodes' | 'links'> | null {
+    try {
+      return JSON.parse(raw) as Pick<GraphData, 'nodes' | 'links'>
+    } catch (error) {
+      console.error('Invalid graph data', error)
+      return null
+    }
+  }
 
-        const openModal = () => {
-          // @ts-ignore
-          modal.showModal()
-          modal.classList.remove('opacity-0', 'pointer-events-none')
-          document.body.style.overflow = 'hidden'
+  function revealLocalGraph(loading: HTMLElement | null) {
+    if (!loading) return
+    loading.style.transition = 'opacity 140ms ease'
+    loading.style.opacity = '0'
+    window.setTimeout(() => {
+      if (loading.isConnected) loading.style.display = 'none'
+    }, 140)
+  }
 
-          if (!globalGraphInstance) {
-            // Lazily fetch global graph data on first open to avoid embedding it in every page
-            setTimeout(async () => {
-              try {
-                const response = await fetch('/vault/graph.json')
-                const gData = await response.json()
-                globalGraphInstance = createGraph(globalGraphContainer, gData, '')
-                if (globalGraphInstance) {
-                  const statsEl = comp.querySelector('.graph-stats')
-                  if (statsEl) {
-                    statsEl.textContent = `${gData.nodes.length} notes · ${gData.links.length} links`
-                  }
-                  // Give the canvas a beat to render before fitting
-                  setTimeout(() => {
-                    // @ts-ignore
-                    globalGraphInstance.zoomToFit(400, 32)
-                  }, 120)
-                }
-              } catch (err) {
-                console.error(
-                  'Failed to load global graph data. Please refresh the page or check your network connection.',
-                  err
-                )
-              }
-            }, 10)
-          } else {
-            // Re-fit every time the modal opens
-            setTimeout(() => {
-              // @ts-ignore
-              globalGraphInstance.zoomToFit(400, 32)
-            }, 120)
+  function initLocalGraphs() {
+    document
+      .querySelectorAll<HTMLElement>('.vault-graph[data-local]:not([data-local=""])')
+      .forEach((container) => {
+        if (container.dataset.rendered === 'true') return
+        container.dataset.rendered = 'true'
+
+        if (!container.dataset.graph) return
+        const data = parseGraphData(container.dataset.graph)
+        if (!data || data.nodes.length === 0) return
+
+        const loading =
+          container.parentElement?.querySelector<HTMLElement>('[data-local-loading]') ?? null
+
+        const start = () => {
+          createVaultGraph(container, data, {
+            mode: 'local',
+            activeSlug: container.dataset.local || undefined
+          })
+            .then((handle) => {
+              activeHandles.push(handle)
+              revealLocalGraph(loading)
+            })
+            .catch((error) => {
+              console.error('Failed to render the local graph', error)
+              if (!loading) return
+              loading.replaceChildren()
+              const message = document.createElement('p')
+              message.className = 'text-[11px] text-muted-foreground'
+              message.textContent = 'Could not load graph.'
+              loading.append(message)
+            })
+        }
+
+        if (!('IntersectionObserver' in window)) {
+          start()
+          return
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue
+              observer.disconnect()
+              start()
+            }
+          },
+          { rootMargin: '240px' }
+        )
+        observer.observe(container)
+      })
+  }
+
+  function renderLegend(container: HTMLElement | null, groups: GraphGroup[] | undefined) {
+    if (!container) return
+    container.replaceChildren()
+    const visible = (groups ?? []).filter((group) => group.count > 0)
+
+    for (const group of visible) {
+      const item = document.createElement('span')
+      item.className = 'inline-flex items-center gap-1.5 whitespace-nowrap'
+
+      const swatch = document.createElement('span')
+      swatch.className = 'vault-graph-swatch size-2 shrink-0 rounded-full'
+      swatch.style.setProperty('--group-hue', String(getFolderHue(group.key)))
+
+      const label = document.createElement('span')
+      label.textContent = group.name
+
+      item.append(swatch, label)
+      container.append(item)
+    }
+
+    container.classList.toggle('hidden', visible.length === 0)
+  }
+
+  function setupModals() {
+    document
+      .querySelectorAll<HTMLElement>('[id^="vault-graph-component-"]')
+      .forEach((component) => {
+        if (component.dataset.modalSetup === 'true') return
+        component.dataset.modalSetup = 'true'
+
+        const button = component.querySelector<HTMLButtonElement>('.global-graph-btn')
+        const modal = component.querySelector<HTMLDialogElement>('.vault-global-graph-modal')
+        const closeButton = component.querySelector<HTMLButtonElement>('.close-global-graph')
+        const container = modal?.querySelector<HTMLElement>('.vault-graph[data-global="true"]')
+        if (!button || !modal || !container) return
+
+        const loading = modal.querySelector<HTMLElement>('[data-graph-loading]')
+        const errorBox = modal.querySelector<HTMLElement>('[data-graph-error]')
+        const errorMessage = modal.querySelector<HTMLElement>('[data-graph-error-message]')
+        const retryButton = modal.querySelector<HTMLButtonElement>('[data-graph-retry]')
+        const stats = modal.querySelector<HTMLElement>('.graph-stats')
+        const legend = modal.querySelector<HTMLElement>('[data-graph-legend]')
+        const controls = modal.querySelectorAll<HTMLButtonElement>('[data-graph-action]')
+
+        let graphHandle: VaultGraphHandle | null = null
+        let graphPromise: Promise<void> | null = null
+        let payload: GraphPayload | null = null
+        let previousOverflow = ''
+        let lastFocused: HTMLElement | null = null
+        let revealed = false
+        let loadingHideTimer: number | null = null
+
+        const clearRevealTimers = () => {
+          if (loadingHideTimer) {
+            clearTimeout(loadingHideTimer)
+            loadingHideTimer = null
           }
         }
 
-        btn.addEventListener('click', (e) => {
-          e.preventDefault()
-          e.stopPropagation()
+        const setState = (state: 'loading' | 'creating' | 'error') => {
+          clearRevealTimers()
+          revealed = false
+
+          if (loading) {
+            loading.style.display = state === 'error' ? 'none' : 'flex'
+            loading.style.opacity = '1'
+            loading.style.transition = ''
+          }
+          if (errorBox) errorBox.style.display = state === 'error' ? 'flex' : 'none'
+          container.style.display = state === 'error' ? 'none' : 'block'
+        }
+
+        const revealGraph = () => {
+          if (revealed || !modal.open || !loading) return
+          revealed = true
+          loading.style.transition = 'opacity 140ms ease'
+          loading.style.opacity = '0'
+          loadingHideTimer = window.setTimeout(() => {
+            loadingHideTimer = null
+            if (modal.open) loading.style.display = 'none'
+          }, 140)
+        }
+
+        const renderStats = (data: GraphPayload) => {
+          if (!stats) return
+          const notes = data.stats?.notes ?? data.nodes.length
+          const links = data.stats?.links ?? data.links.length
+          const isolated = data.stats?.isolated ?? 0
+          stats.textContent = `${notes} notes · ${links} links · ${isolated} unlinked`
+        }
+
+        const ensureGraph = () => {
+          if (graphHandle || graphPromise || !payload) return
+          setState('creating')
+          graphPromise = createVaultGraph(container, payload, {
+            mode: 'global',
+            isolatedRing: true
+          })
+            .then((handle) => {
+              if (!modal.open) {
+                handle.destroy()
+                return
+              }
+              graphHandle = handle
+              activeHandles.push(handle)
+              handle.fit()
+              revealGraph()
+            })
+            .catch((error) => {
+              console.error('Failed to render the global graph', error)
+              if (errorMessage) {
+                errorMessage.textContent = 'Could not draw the graph. Try again.'
+              }
+              setState('error')
+            })
+            .finally(() => {
+              graphPromise = null
+            })
+        }
+
+        const startLoad = () => {
+          if (graphHandle) {
+            revealGraph()
+            return
+          }
+
+          if (stats) stats.textContent = 'Loading…'
+          setState('loading')
+          loadGraphData()
+            .then((data) => {
+              payload = data
+              renderStats(data)
+              container.setAttribute(
+                'aria-label',
+                `Global vault graph with ${data.stats?.notes ?? data.nodes.length} notes and ${data.stats?.links ?? data.links.length} links`
+              )
+              renderLegend(legend, data.groups)
+              if (!modal.open) return
+              requestAnimationFrame(() => {
+                if (modal.open) ensureGraph()
+              })
+            })
+            .catch((error) => {
+              console.error(error)
+              if (stats) stats.textContent = 'Could not load graph data.'
+              if (errorMessage) {
+                errorMessage.textContent =
+                  'Could not load the graph. Check your connection and try again.'
+              }
+              setState('error')
+            })
+        }
+
+        const openModal = () => {
+          prefetchGraph()
+
+          if (!modal.open) {
+            lastFocused =
+              document.activeElement instanceof HTMLElement ? document.activeElement : null
+            previousOverflow = document.body.style.overflow
+            modal.showModal()
+            document.body.style.overflow = 'hidden'
+          }
+
+          if (graphHandle) {
+            setState('loading')
+            requestAnimationFrame(() => {
+              if (!modal.open) return
+              graphHandle?.resize()
+              graphHandle?.fit()
+              revealGraph()
+            })
+            return
+          }
+
+          if (payload) {
+            setState('creating')
+            requestAnimationFrame(() => {
+              if (modal.open) ensureGraph()
+            })
+            return
+          }
+
+          startLoad()
+        }
+
+        const closeModal = () => {
+          if (modal.open) modal.close()
+        }
+
+        const retry = () => {
+          graphHandle?.destroy()
+          graphHandle = null
+          payload = null
+          setState('loading')
+          startLoad()
+        }
+
+        button.addEventListener('click', (event) => {
+          event.preventDefault()
+          event.stopPropagation()
           openModal()
         })
 
-        // Zoom controls inside the modal
-        const controlBtns = comp.querySelectorAll('[data-graph-action]')
-        controlBtns.forEach((cb) => {
-          cb.addEventListener('click', () => {
-            if (!globalGraphInstance) return
-            // @ts-ignore
-            const action = cb.dataset.graphAction
-            // @ts-ignore
-            const currentZoom = globalGraphInstance.zoom()
-            if (action === 'zoom-in') {
-              // @ts-ignore
-              globalGraphInstance.zoom(Math.min(8, currentZoom * 1.4), 300)
-            } else if (action === 'zoom-out') {
-              // @ts-ignore
-              globalGraphInstance.zoom(Math.max(0.2, currentZoom / 1.4), 300)
-            } else if (action === 'fit') {
-              // @ts-ignore
-              globalGraphInstance.zoomToFit(400, 32)
-            }
+        closeButton?.addEventListener('click', closeModal)
+        retryButton?.addEventListener('click', retry)
+
+        controls.forEach((control) => {
+          control.addEventListener('click', () => {
+            if (!graphHandle) return
+            const action = control.dataset.graphAction
+            if (action === 'zoom-in') graphHandle.zoomIn()
+            else if (action === 'zoom-out') graphHandle.zoomOut()
+            else graphHandle.fit()
           })
         })
 
-        const closeModal = () => {
-          modal.classList.add('opacity-0', 'pointer-events-none')
-          document.body.style.overflow = ''
-          setTimeout(() => {
-            // @ts-ignore
-            modal.close()
-          }, 300)
-        }
-
-        if (closeBtn) closeBtn.addEventListener('click', closeModal)
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) closeModal()
+        })
 
         modal.addEventListener('close', () => {
-          modal.classList.add('opacity-0', 'pointer-events-none')
-          document.body.style.overflow = ''
+          clearRevealTimers()
+          revealed = false
+          document.body.style.overflow = previousOverflow
+          if (lastFocused?.isConnected) lastFocused.focus()
         })
+      })
+  }
 
-        modal.addEventListener('click', (e) => {
-          if (e.target === modal) {
-            closeModal()
-          }
-        })
-      }
+  function setupPrefetch() {
+    document.querySelectorAll<HTMLElement>('.global-graph-btn').forEach((button) => {
+      if (button.dataset.prefetch === 'true') return
+      button.dataset.prefetch = 'true'
+
+      const run = () => prefetchGraph()
+      button.addEventListener('pointerenter', run, { once: true })
+      button.addEventListener('focus', run, { once: true })
+      button.addEventListener('touchstart', run, { once: true, passive: true })
     })
+
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+    if (!/^\/vault(?:\/|$)/.test(window.location.pathname) || connection?.saveData) return
+
+    if (/^\/vault\/?$/.test(window.location.pathname)) {
+      prefetchGraph()
+      return
+    }
+
+    if (prefetchTimer === null) {
+      prefetchTimer = window.setTimeout(() => {
+        prefetchTimer = null
+        prefetchGraph()
+      }, 1200)
+    }
+  }
+
+  function initGraphs() {
+    initLocalGraphs()
+    setupModals()
+    setupPrefetch()
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGraphs)
+  } else {
+    initGraphs()
   }
 
   document.addEventListener('astro:page-load', initGraphs)
-  initGraphs()
+
+  document.addEventListener(
+    'astro:before-swap',
+    () => {
+      for (const handle of activeHandles) handle.destroy()
+      activeHandles.length = 0
+    },
+    { once: true }
+  )
 </script>
+
+<style>
+  .vault-graph-loader {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 14px;
+  }
+
+  .vault-graph-loader span {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: hsl(var(--primary));
+    animation: vault-graph-dot 900ms ease-in-out infinite;
+  }
+
+  .vault-graph-loader span:nth-child(2) {
+    animation-delay: 140ms;
+  }
+
+  .vault-graph-loader span:nth-child(3) {
+    animation-delay: 280ms;
+  }
+
+  @keyframes vault-graph-dot {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: translateY(0);
+    }
+    40% {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vault-graph-loader span {
+      animation: none;
+      opacity: 0.65;
+    }
+  }
+</style>
