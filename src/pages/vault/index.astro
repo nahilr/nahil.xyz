@@ -3,7 +3,6 @@ import PageLayout from '@/layouts/BaseLayout.astro'
 import { Button, Icon } from '@/components/user'
 import VaultGraph from '@/components/vault/VaultGraph.astro'
 import VaultCardGrid from '@/components/vault/VaultCardGrid.astro'
-import VaultTree from '@/components/vault/VaultTree.astro'
 import { getUniqueVaultTagsWithCount } from '@/utils/vault'
 
 const meta = {
@@ -27,55 +26,13 @@ const topTags = allTags.slice(0, 4)
     <div
       class='animate vault-animate-intro flex flex-col sm:flex-row flex-wrap items-start sm:items-center sm:justify-between gap-4 mb-8'
     >
-      <div class='flex items-center justify-between w-full sm:w-auto gap-4'>
-        <p class='text-muted-foreground text-lg'>
-          Welcome to my digital garden. Explore the notes below.
-        </p>
-        <div class='flex sm:hidden items-center gap-0.5 bg-muted rounded-lg p-0.5'>
-          <button
-            type='button'
-            id='grid-view-btn-mobile'
-            class='view-toggle-btn p-1.5 rounded-md transition-colors active'
-            aria-label='Grid view'
-            title='Grid view'
-          >
-            <Icon name='grid' class='size-4.5' />
-          </button>
-          <button
-            type='button'
-            id='list-view-btn-mobile'
-            class='view-toggle-btn p-1.5 rounded-md transition-colors'
-            aria-label='List view'
-            title='List view'
-          >
-            <Icon name='list-lucide' class='size-4.5' />
-          </button>
-        </div>
-      </div>
+      <p class='text-muted-foreground text-lg'>
+        Welcome to my digital garden. Explore the notes below.
+      </p>
 
       {
         !!topTags.length && (
           <div class='flex items-center gap-3 text-base sm:text-sm flex-wrap sm:ml-auto'>
-            <div class='hidden sm:flex items-center gap-0.5 bg-muted rounded-lg p-0.5'>
-              <button
-                type='button'
-                id='grid-view-btn'
-                class='view-toggle-btn p-1.5 rounded-md transition-colors active'
-                aria-label='Grid view'
-                title='Grid view'
-              >
-                <Icon name='grid' class='size-4.5' />
-              </button>
-              <button
-                type='button'
-                id='list-view-btn'
-                class='view-toggle-btn p-1.5 rounded-md transition-colors'
-                aria-label='List view'
-                title='List view'
-              >
-                <Icon name='list-lucide' class='size-4.5' />
-              </button>
-            </div>
             <Icon name='tag-2' class='size-5 text-muted-foreground' />
             {topTags.map(([tag]) => (
               <Button title={tag} href={`/tags/${tag}`} variant='pill' class='text-sm sm:text-xs' />
@@ -97,12 +54,7 @@ const topTags = allTags.slice(0, 4)
       }
     </div>
 
-    <VaultCardGrid id='grid-view' class='animate vault-animate-grid' />
-
-    <!-- List View (Tree) -->
-    <div id='list-view' class='animate vault-animate-grid hidden'>
-      <VaultTree class='text-base' collapsed />
-    </div>
+    <VaultCardGrid class='animate vault-animate-grid' />
 
     <div class='animate mt-8 flex justify-start'>
       <a
@@ -128,99 +80,5 @@ const topTags = allTags.slice(0, 4)
   .vault-animate-grid {
     animation-delay: 150ms;
   }
-
-  /* View toggle button styles */
-  .view-toggle-btn {
-    color: hsl(var(--muted-foreground));
-  }
-
-  .view-toggle-btn:hover {
-    color: hsl(var(--foreground));
-    background-color: hsl(var(--muted) / 0.5);
-  }
-
-  .view-toggle-btn.active {
-    color: hsl(var(--primary));
-    background-color: hsl(var(--muted) / 0.3);
-  }
-
-  /* List view tree enhancements */
-  #list-view :global(vault-tree) {
-    font-size: 0.95rem;
-  }
-
-  #list-view :global(vault-tree ul) {
-    margin-left: 0.5rem;
-  }
-
-  #list-view :global(vault-tree a) {
-    padding: 0.1rem 0.4rem;
-    border-radius: 0.375rem;
-    transition: background-color 0.15s ease;
-  }
-
-  #list-view :global(vault-tree a:hover) {
-    background-color: hsl(var(--muted) / 0.5);
-  }
 </style>
-
-<script>
-  const VAULT_VIEW_KEY = 'vault-view-preference'
-
-  // View toggle functionality
-  function initializeViewToggle() {
-    const gridViewBtn = document.getElementById('grid-view-btn')
-    const listViewBtn = document.getElementById('list-view-btn')
-    const gridViewBtnMobile = document.getElementById('grid-view-btn-mobile')
-    const listViewBtnMobile = document.getElementById('list-view-btn-mobile')
-    const gridView = document.getElementById('grid-view')
-    const listView = document.getElementById('list-view')
-
-    if (!gridView || !listView) return
-
-    const setView = (view: 'grid' | 'list') => {
-      if (view === 'grid') {
-        gridView.classList.remove('hidden')
-        listView.classList.add('hidden')
-        gridViewBtn?.classList.add('active')
-        listViewBtn?.classList.remove('active')
-        gridViewBtnMobile?.classList.add('active')
-        listViewBtnMobile?.classList.remove('active')
-      } else {
-        gridView.classList.add('hidden')
-        listView.classList.remove('hidden')
-        gridViewBtn?.classList.remove('active')
-        listViewBtn?.classList.add('active')
-        gridViewBtnMobile?.classList.remove('active')
-        listViewBtnMobile?.classList.add('active')
-      }
-      localStorage.setItem(VAULT_VIEW_KEY, view)
-    }
-
-    // Restore saved preference
-    const savedView = localStorage.getItem(VAULT_VIEW_KEY) as 'grid' | 'list' | null
-    if (savedView) {
-      setView(savedView)
-    }
-
-    gridViewBtn?.addEventListener('click', () => setView('grid'))
-    listViewBtn?.addEventListener('click', () => setView('list'))
-    gridViewBtnMobile?.addEventListener('click', () => setView('grid'))
-    listViewBtnMobile?.addEventListener('click', () => setView('list'))
-  }
-
-  function initializeVault() {
-    initializeViewToggle()
-  }
-
-  // Initialize on page load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeVault)
-  } else {
-    initializeVault()
-  }
-
-  // Re-initialize on view transitions (Astro navigation)
-  document.addEventListener('astro:page-load', initializeVault)
-</script>
 
