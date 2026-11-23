@@ -385,9 +385,13 @@ export async function getUniqueVaultTagsWithCount(
   return [...tagMap.entries()].sort((a, b) => b[1] - a[1])
 }
 
+function getVaultEntryDate(collection: EnrichedVaultEntry): Date | undefined {
+  const date = collection.data.publishDate ?? collection.data.updatedDate
+  return date ? new Date(date) : undefined
+}
+
 function getYearFromCollection(collection: EnrichedVaultEntry): number | undefined {
-  const dateStr = collection.data.updatedDate ?? collection.data.publishDate
-  return dateStr ? new Date(dateStr).getFullYear() : undefined
+  return getVaultEntryDate(collection)?.getFullYear()
 }
 
 export function groupCollectionsByYear(
@@ -410,8 +414,8 @@ export function groupCollectionsByYear(
 export function sortMDByDate(collections: EnrichedVaultEntry[]): EnrichedVaultEntry[] {
   // Sort a copy so the caller's array is left untouched
   return [...collections].sort((a, b) => {
-    const aDate = new Date(a.data.updatedDate ?? a.data.publishDate ?? 0).valueOf()
-    const bDate = new Date(b.data.updatedDate ?? b.data.publishDate ?? 0).valueOf()
+    const aDate = getVaultEntryDate(a)?.valueOf() ?? 0
+    const bDate = getVaultEntryDate(b)?.valueOf() ?? 0
     return bDate - aDate
   })
 }

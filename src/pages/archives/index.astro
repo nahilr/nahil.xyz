@@ -7,9 +7,10 @@ import { getEnrichedVaultCollection, groupCollectionsByYear, sortMDByDate } from
 export const prerender = true
 
 const allContent = await getEnrichedVaultCollection()
+// Archives are ordered by creation time, not last modification.
 const allContentByDate = sortMDByDate(allContent)
 const datedContent = allContentByDate.filter(
-  (entry) => entry.data.updatedDate ?? entry.data.publishDate
+  (entry) => entry.data.publishDate ?? entry.data.updatedDate
 )
 const allContentByYear = groupCollectionsByYear(datedContent)
 
@@ -54,7 +55,7 @@ const meta = {
                     note={{
                       title: entry.data.title || entry.slug,
                       slug: entry.slug,
-                      date: entry.data.updatedDate ?? entry.data.publishDate ?? new Date(0),
+                      date: entry.data.publishDate ?? entry.data.updatedDate ?? new Date(0),
                       draft: entry.data.publish === false,
                       type: entry.data.type || 'note'
                     }}

@@ -170,8 +170,8 @@ Both are re-exported from `src/utils/vault.ts` for backward compatibility. File 
 ```typescript
 // Unified Vault helpers
 getEnrichedVaultCollection() // Returns EnrichedVaultEntry[], automatically filtering publish: false
-sortMDByDate(posts) // Sorts by updatedDate ?? publishDate
-groupCollectionsByYear() // Groups posts for archives page
+sortMDByDate(posts) // Sorts by publishDate ?? updatedDate
+groupCollectionsByYear(posts) // Groups posts by year of publishDate ?? updatedDate
 getUniqueVaultTagsWithCount() // Unified tag cloud matching
 getVaultTree() // Recursive tree for navigation (used by sidebar and dashboard)
 getVaultFlatList() // Flattened list of notes for pagination
