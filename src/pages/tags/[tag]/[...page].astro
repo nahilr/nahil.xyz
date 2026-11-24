@@ -1,9 +1,8 @@
 ---
 import type { GetStaticPaths, Page } from 'astro'
 
-import PageLayout from '@/layouts/BaseLayout.astro'
+import PageLayout from '@/layouts/SimplePageLayout.astro'
 import { Paginator, PostPreview } from '@/components/pages'
-import { Button } from '@/components/user'
 import { getEnrichedVaultCollection, getUniqueVaultTags, sortMDByDate } from '@/utils/vault'
 import type { EnrichedVaultEntry } from '@/utils/vault'
 
@@ -42,7 +41,7 @@ const displayTag = tagSegments.join('/')
 
 const meta = {
   description: `View all posts and vault notes with the tag - ${displayTag}`,
-  title: `Tag: ${displayTag}`
+  title: `Tags: #${displayTag}`
 }
 
 const paginationProps = {
@@ -61,78 +60,70 @@ const paginationProps = {
 }
 ---
 
-<PageLayout {meta}>
-  <Button title='Back' href='/tags' variant='back' />
-  <main class='mt-6 lg:mt-10'>
-    <div id='content-header' class='animate'>
-      <h1 class='mb-6 flex items-end gap-x-2 text-3xl font-medium'>
-        Tags:
-        <span class='text-2xl'>#{displayTag}</span>
-      </h1>
-    </div>
+<PageLayout {meta} title='Tags:' titleClass='flex items-end gap-x-2' back='/tags'>
+  <span slot='title-extra' class='text-2xl'>#{displayTag}</span>
 
-    <section id='content' class='animate' aria-label='Content list'>
-      <div class='grid grid-cols-1 md:grid-cols-2 gap-6'>
-        <div>
-          <ul class='flex flex-col gap-y-3 text-start'>
-            {
-              page.data.map((item, index) => {
-                if (index >= Math.ceil(page.data.length / 2)) return null
+  <section id='content' class='animate' aria-label='Content list'>
+    <div class='grid grid-cols-1 md:grid-cols-2 gap-6'>
+      <div>
+        <ul class='flex flex-col gap-y-3 text-start'>
+          {
+            page.data.map((item, index) => {
+              if (index >= Math.ceil(page.data.length / 2)) return null
 
-                const isPost = item.data.type.includes('post')
+              const isPost = item.data.type.includes('post')
 
-                if (isPost) {
-                  return <PostPreview post={item} detailed />
-                } else {
-                  return (
-                    <li class='mb-3 border-l border-muted-foreground/30 pl-4'>
-                      <a
-                        href={`/vault/${item.slug}`}
-                        class='font-semibold text-foreground hover:text-primary transition-colors'
-                      >
-                        {item.data.title}
-                      </a>
-                      {item.data.description && (
-                        <p class='text-sm text-muted-foreground mt-1'>{item.data.description}</p>
-                      )}
-                    </li>
-                  )
-                }
-              })
-            }
-          </ul>
-        </div>
-        <div>
-          <ul class='flex flex-col gap-y-3 text-start'>
-            {
-              page.data.map((item, index) => {
-                if (index < Math.ceil(page.data.length / 2)) return null
-
-                const isPost = item.data.type.includes('post')
-
-                if (isPost) {
-                  return <PostPreview post={item} detailed />
-                } else {
-                  return (
-                    <li class='mb-3 border-l border-muted-foreground/30 pl-4'>
-                      <a
-                        href={`/vault/${item.slug}`}
-                        class='font-semibold text-foreground hover:text-primary transition-colors'
-                      >
-                        {item.data.title}
-                      </a>
-                      {item.data.description && (
-                        <p class='text-sm text-muted-foreground mt-1'>{item.data.description}</p>
-                      )}
-                    </li>
-                  )
-                }
-              })
-            }
-          </ul>
-        </div>
+              if (isPost) {
+                return <PostPreview post={item} detailed />
+              } else {
+                return (
+                  <li class='mb-3 border-l border-muted-foreground/30 pl-4'>
+                    <a
+                      href={`/vault/${item.slug}`}
+                      class='font-semibold text-foreground hover:text-primary transition-colors'
+                    >
+                      {item.data.title}
+                    </a>
+                    {item.data.description && (
+                      <p class='text-sm text-muted-foreground mt-1'>{item.data.description}</p>
+                    )}
+                  </li>
+                )
+              }
+            })
+          }
+        </ul>
       </div>
-      <Paginator {...paginationProps} />
-    </section>
-  </main>
+      <div>
+        <ul class='flex flex-col gap-y-3 text-start'>
+          {
+            page.data.map((item, index) => {
+              if (index < Math.ceil(page.data.length / 2)) return null
+
+              const isPost = item.data.type.includes('post')
+
+              if (isPost) {
+                return <PostPreview post={item} detailed />
+              } else {
+                return (
+                  <li class='mb-3 border-l border-muted-foreground/30 pl-4'>
+                    <a
+                      href={`/vault/${item.slug}`}
+                      class='font-semibold text-foreground hover:text-primary transition-colors'
+                    >
+                      {item.data.title}
+                    </a>
+                    {item.data.description && (
+                      <p class='text-sm text-muted-foreground mt-1'>{item.data.description}</p>
+                    )}
+                  </li>
+                )
+              }
+            })
+          }
+        </ul>
+      </div>
+    </div>
+    <Paginator {...paginationProps} />
+  </section>
 </PageLayout>

@@ -1,5 +1,6 @@
 ---
 import PageLayout from '@/layouts/BaseLayout.astro'
+import { BackToTop } from '@/components/pages'
 import { Button, Icon } from '@/components/user'
 import VaultGraph from '@/components/vault/VaultGraph.astro'
 import VaultCardGrid from '@/components/vault/VaultCardGrid.astro'
@@ -15,9 +16,10 @@ const topTags = allTags.slice(0, 4)
 ---
 
 <PageLayout meta={meta}>
-  <div class='mt-4 max-w-[90rem] mx-auto px-4 lg:px-0'>
+  <Button title='Back' href='/' variant='back' />
+  <div id='content' class='mt-6 lg:mt-10'>
     <div class='flex items-center justify-between mb-6 w-full'>
-      <h1 id='content-header' class='animate text-3xl font-bold tracking-tight text-foreground'>
+      <h1 id='content-header' class='animate text-3xl font-medium text-foreground'>
         Vault
       </h1>
       <VaultGraph modalOnly class='animate' />
@@ -35,7 +37,7 @@ const topTags = allTags.slice(0, 4)
           <div class='flex items-center gap-3 text-base sm:text-sm flex-wrap sm:ml-auto'>
             <Icon name='tag-2' class='size-5 text-muted-foreground' />
             {topTags.map(([tag]) => (
-              <Button title={tag} href={`/tags/${tag}`} variant='pill' class='text-sm sm:text-xs' />
+              <Button title={tag} href={`/tags/${tag}`} variant='pill' />
             ))}
             <a
               aria-label='View all vault tags'
@@ -70,6 +72,8 @@ const topTags = allTags.slice(0, 4)
       </a>
     </div>
   </div>
+
+  <BackToTop header='content-header' content='content' />
 </PageLayout>
 
 <style>

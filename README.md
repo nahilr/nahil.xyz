@@ -226,7 +226,7 @@ import config from '@/site-config'
 │   │   ├── user/         # UI components (Button, Card, Tabs, Timeline)
 │   │   ├── projects/     # Project-specific components
 │   │   └── vault/        # Vault navigation components (VaultTree, VaultGraph, Backlinks)
-│   ├── layouts/          # Page layouts (BaseLayout, VaultLayout, ContentLayout)
+│   ├── layouts/          # Page layouts (BaseLayout, ContentLayout, SimplePageLayout, VaultLayout, IndividualPage)
 │   ├── pages/            # Route pages
 │   ├── plugins/          # Remark/Rehype plugins and Shiki transformers
 │   ├── types/            # TypeScript type definitions

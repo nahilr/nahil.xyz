@@ -1,0 +1,33 @@
+---
+import type { SiteMeta } from '@/types/config'
+
+import PageLayout from '@/layouts/BaseLayout.astro'
+import { BackToTop } from '@/components/pages'
+import { Button } from '@/components/user'
+import { cn } from '@/utils'
+
+interface Props {
+  meta: SiteMeta
+  title: string
+  back?: string
+  titleClass?: string
+}
+
+const { meta, title, back = '/', titleClass } = Astro.props
+---
+
+<PageLayout {meta}>
+  <Button title='Back' href={back} variant='back' />
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class={cn('mb-6 text-3xl font-medium', titleClass)}>
+        {title}
+        <slot name='title-extra' />
+      </h1>
+    </div>
+
+    <slot />
+  </main>
+
+  <BackToTop header='content-header' content='content' />
+</PageLayout>

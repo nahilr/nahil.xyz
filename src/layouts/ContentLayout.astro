@@ -1,7 +1,9 @@
 ---
+import type { MarkdownHeading } from 'astro'
+
 import type { SiteMeta } from '@/types/config'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import { BackToTop } from '@/components/pages'
+import { BackToTop, TOC } from '@/components/pages'
 import { Button, Icon } from '@/components/user'
 import { cn } from '@/utils'
 import { integ } from '@/site-config'
@@ -10,14 +12,20 @@ interface Props {
   meta: SiteMeta
   highlightColor?: string
   back?: string
+  /** Page title. Falls back to `meta.title` when omitted. */
+  title?: string
+  /** Renders a table of contents in the sidebar. */
+  headings?: MarkdownHeading[]
 }
 
-const { meta, highlightColor, back = '/', ...props } = Astro.props
+const { meta, highlightColor, back = '/', title, headings, ...props } = Astro.props
+
+const pageTitle = title ?? meta.title
 ---
 
 <PageLayout {meta} {highlightColor} {...props}>
   <Button title='Back' href={back} variant='back' />
-  <main class='mt-6 items-start gap-x-10 md:flex'>
+  <main class='mt-6 items-start gap-x-10 md:flex lg:mt-10'>
     {/* Sidebar */}
     <aside
       data-pagefind-ignore
@@ -25,6 +33,7 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
       style='height:calc(100vh - 7rem);'
       id='sidebar'
     >
+      {headings?.length && <TOC {headings} />}
       <slot name='sidebar' />
     </aside>
     <div
@@ -36,6 +45,17 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
     <article class='min-w-0 grow' data-pagefind-body>
       {/* Content header */}
       <div id='content-header' class='animate'>
+        {
+          pageTitle && (
+            <h1
+              data-pagefind-meta='title'
+              data-pagefind-weight='10'
+              class='mb-6 text-3xl font-medium'
+            >
+              {pageTitle}
+            </h1>
+          )
+        }
         <slot name='header' />
       </div>
 

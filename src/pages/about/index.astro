@@ -1,5 +1,5 @@
 ---
-import PageLayout from '@/layouts/CommonPage.astro'
+import PageLayout from '@/layouts/ContentLayout.astro'
 import { ImageCard } from '@/components/about'
 import { Icon, Spoiler, Timeline } from '@/components/user'
 
@@ -17,7 +17,7 @@ const headings = [
 ]
 ---
 
-<PageLayout title='About' {headings}>
+<PageLayout meta={{ title: 'About' }} {headings}>
   <p>Student / Developer / Cybersecurity Enthusiast</p>
   <p>Hi, I'm Nahil Rasheed.</p>
   <p>

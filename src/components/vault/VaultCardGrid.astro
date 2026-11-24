@@ -40,7 +40,9 @@ const children = folder ? (node?.children ?? []) : tree
 
 {
   (folder ? node && children.length === 0 : children.length === 0) && (
-    <p class='not-prose text-muted-foreground italic'>No notes in this folder.</p>
+    <p class='not-prose text-muted-foreground italic'>
+      {folder ? 'No notes in this folder.' : 'No content yet.'}
+    </p>
   )
 }
 

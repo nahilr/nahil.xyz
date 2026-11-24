@@ -1,5 +1,5 @@
 ---
-import PageLayout from '@/layouts/CommonPage.astro'
+import PageLayout from '@/layouts/ContentLayout.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 
 const headings = [
@@ -11,7 +11,7 @@ const headings = [
 ]
 ---
 
-<PageLayout title='Projects' {headings}>
+<PageLayout meta={{ title: 'Projects' }} {headings}>
   <h2 id='projects'>Personal Projects</h2>
   <ProjectSection
     projects={[

@@ -3,6 +3,7 @@ import { Image } from 'astro:assets'
 
 import PageLayout from '@/layouts/BaseLayout.astro'
 // import { ImageCard } from '@/components/about'
+import { BackToTop } from '@/components/pages'
 import PostPreview from '@/components/pages/PostPreview.astro'
 import { Icon, Label, Section } from '@/components/user'
 import { getEnrichedVaultCollection } from '@/utils/vault'
@@ -72,7 +73,7 @@ if (!images[imagePath])
       </div>
     </section>
 
-    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
+    <div id='content' class='animate flex flex-col gap-y-10'>
       <Section title='About'>
         <p class='text-muted-foreground'>
           Hi, I'm Nahil Rasheed.
@@ -190,4 +191,6 @@ if (!images[imagePath])
       </div>
     </div>
   </main>
+
+  <BackToTop header='content-header' content='content' />
 </PageLayout>
